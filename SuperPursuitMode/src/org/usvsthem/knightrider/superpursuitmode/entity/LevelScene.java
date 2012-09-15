@@ -5,17 +5,40 @@ import java.util.Random;
 import org.andengine.engine.Engine;
 import org.andengine.engine.handler.IUpdateHandler;
 import org.andengine.entity.primitive.Line;
+import org.andengine.entity.scene.IOnSceneTouchListener;
 import org.andengine.entity.scene.Scene;
+import org.andengine.input.touch.TouchEvent;
+import org.andengine.input.touch.detector.ScrollDetector;
+import org.andengine.input.touch.detector.ScrollDetector.IScrollDetectorListener;
+import org.andengine.input.touch.detector.SurfaceScrollDetector;
 
-public class LevelScene extends Scene{
+public class LevelScene extends Scene implements IScrollDetectorListener{
 	
 	private Engine engine;
-	
+	private SurfaceScrollDetector scrollDetector;
+	private Terrain terrain;
 	public LevelScene(Engine engine){
 		this.engine = engine;
-		Terrain terrain = new Terrain(engine);
+		terrain = new Terrain(engine);
 		this.attachChild(terrain);
 		this.registerUpdateHandler(terrain);
+		
+		this.scrollDetector = new SurfaceScrollDetector(this);	
+		scrollDetector.setTriggerScrollMinimumDistance(100);
+		
+	
+		this.setOnSceneTouchListener(new IOnSceneTouchListener() {
+			
+			@Override
+			public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
+				// TODO Auto-generated method stub
+				
+				scrollDetector.onTouchEvent(pSceneTouchEvent);	
+				
+				return false;
+			}
+		});
+		
 		/*
 		
 		final Random rg = new Random();
@@ -54,5 +77,29 @@ public class LevelScene extends Scene{
 		
 		
 	}
+	@Override
+	public void onScrollStarted(ScrollDetector pScollDetector, int pPointerID,
+			float pDistanceX, float pDistanceY) {
+		// TODO Auto-generated method stub
+		
+		
+		
+	}
+	@Override
+	public void onScroll(ScrollDetector pScollDetector, int pPointerID,
+			float pDistanceX, float pDistanceY) {
+		// TODO Auto-generated method stub
+		terrain.setOffset(pDistanceX, pDistanceY);
+		
+	}
+	@Override
+	public void onScrollFinished(ScrollDetector pScollDetector, int pPointerID,
+			float pDistanceX, float pDistanceY) {
+		// TODO Auto-generated method stub
+		terrain.setOffset(0, 0);
+		
+	}
+	
+
 
 }
