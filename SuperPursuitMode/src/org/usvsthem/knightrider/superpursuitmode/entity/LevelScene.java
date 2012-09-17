@@ -1,63 +1,61 @@
 package org.usvsthem.knightrider.superpursuitmode.entity;
 
-import java.util.Random;
-
 import org.andengine.engine.Engine;
+import org.andengine.engine.camera.Camera;
+import org.andengine.engine.camera.SmoothCamera;
 import org.andengine.engine.handler.IUpdateHandler;
-import org.andengine.entity.primitive.Line;
 import org.andengine.entity.scene.IOnSceneTouchListener;
 import org.andengine.entity.scene.Scene;
+import org.andengine.entity.scene.background.Background;
+import org.andengine.entity.sprite.Sprite;
+import org.andengine.extension.physics.box2d.PhysicsConnector;
+import org.andengine.extension.physics.box2d.PhysicsFactory;
+import org.andengine.extension.physics.box2d.PhysicsWorld;
+import org.andengine.extension.physics.box2d.util.constants.PhysicsConstants;
 import org.andengine.input.touch.TouchEvent;
 import org.andengine.input.touch.detector.ScrollDetector;
 import org.andengine.input.touch.detector.ScrollDetector.IScrollDetectorListener;
 import org.andengine.input.touch.detector.SurfaceScrollDetector;
+import org.andengine.opengl.texture.region.TextureRegionLibrary;
+import org.usvsthem.knightrider.superpursuitmode.Textures;
+import org.usvsthem.knightrider.superpursuitmode.util.Box2dDebugRenderer;
+
+import android.hardware.SensorManager;
+import android.util.Log;
+
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.FixtureDef;
+import com.badlogic.gdx.physics.box2d.PolygonShape;
+import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 
 public class LevelScene extends Scene implements IScrollDetectorListener{
+	
+	public static int ACTOR_INDEX = 0;
 	
 	private Engine engine;
 	private SurfaceScrollDetector scrollDetector;
 	private Terrain terrain;
-	public LevelScene(Engine engine){
-		this.engine = engine;
-		terrain = new Terrain(engine);
-		this.attachChild(terrain);
-		this.registerUpdateHandler(terrain);
-		
-		this.scrollDetector = new SurfaceScrollDetector(this);	
-		scrollDetector.setTriggerScrollMinimumDistance(100);
-		
+	private PhysicsWorld physicsWorld;
+	private static final Vector2 GRAVITY = new Vector2(0.0F, SensorManager.GRAVITY_EARTH);
+	private PlayerActor playerActor;
+	private TextureRegionLibrary textureRegionLibrary;
 	
-		this.setOnSceneTouchListener(new IOnSceneTouchListener() {
-			
-			@Override
-			public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
-				// TODO Auto-generated method stub
-				
-				scrollDetector.onTouchEvent(pSceneTouchEvent);	
-				
-				return false;
-			}
-		});
+	public LevelScene(final Engine engine, TextureRegionLibrary textureRegionLibrary){
+	
+		this.engine = engine;
+		this.textureRegionLibrary = textureRegionLibrary;
 		
-		/*
 		
-		final Random rg = new Random();
-		final float[] buffer = new float[12];
-		buffer[0]=0;
-		buffer[1]=0;
+		this.setBackground(new Background(1f,1f,1f));
 		
-		buffer[3]=100;
-		buffer[4]=100;
+		createPhysicsWorld();
+		createTerrain();
 		
-		buffer[6]=200;
-		buffer[7]=400;
 		
-		buffer[9]=700;
-		buffer[10]=400;
-		
-		final Path path = new Path(0, 0, buffer,engine.getVertexBufferObjectManager());
-		path.setColor(1.0f,1.0f,0.1f);
-		this.attachChild(path);
+		this.playerActor = createPlayer(0, 0);
+		configureCamera();
 		
 		this.registerUpdateHandler(new IUpdateHandler() {
 			
@@ -70,13 +68,133 @@ public class LevelScene extends Scene implements IScrollDetectorListener{
 			@Override
 			public void onUpdate(float pSecondsElapsed) {
 				// TODO Auto-generated method stub
-				buffer[7]+=rg.nextFloat();
-				path.setBufferData(buffer);
+				//
+				//terrain.setOffset(engine.getCamera().getCenterX(), engine.getCamera().getCenterY());
+				//terrain.setPosition(engine.getCamera().getXMin(), engine.getCamera().getYMin());
 			}
-		});*/
+		});
+		
+		//createPlayer(200,0);
+		
+		//Box2dDebugRenderer renderer = new Box2dDebugRenderer(physicsWorld, engine.getVertexBufferObjectManager());
+		//this.attachChild(renderer);
+		
 		
 		
 	}
+	
+	public void createTerrain(){
+		
+		terrain = new Terrain(engine, this.physicsWorld);
+		this.attachChild(terrain);
+		this.registerUpdateHandler(terrain);
+		
+		this.scrollDetector = new SurfaceScrollDetector(this);	
+		scrollDetector.setTriggerScrollMinimumDistance(100);
+		
+		this.setOnSceneTouchListener(new IOnSceneTouchListener() {
+			
+			@Override
+			public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
+				scrollDetector.onTouchEvent(pSceneTouchEvent);	
+				return false;
+			}
+		});
+		
+		
+	}
+	
+	public void createPhysicsWorld(){
+		this.physicsWorld = new PhysicsWorld(new Vector2(0,9.8f), true);
+		
+		this.registerUpdateHandler(new IUpdateHandler() {
+			
+			@Override
+			public void reset() {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onUpdate(float pSecondsElapsed) {
+				// TODO Auto-generated method stub
+				physicsWorld.onUpdate(pSecondsElapsed);
+				
+				
+				
+			}
+		});
+	}
+	
+	public void configureCamera(){
+		
+		this.registerUpdateHandler(new IUpdateHandler() {
+			
+			@Override
+			public void reset() {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onUpdate(float pSecondsElapsed) {
+				// TODO Auto-generated method stub
+				SmoothCamera camera = (SmoothCamera) engine.getCamera();
+				
+				float cameraX = playerActor.getX()+(camera.getWidth()/2);
+				
+				//float y1 = terrain.getTerrainHeightAtX(cameraX-camera.getWidth()/2);
+				//float y2 = terrain.getTerrainHeightAtX(cameraX+ camera.getWidth()/2);
+				
+				float minY = terrain.getMinTerrainHeightInRange(camera.getXMin(), camera.getXMax());
+				float maxY =  terrain.getMaxTerrainHeightInRange(camera.getXMin(), camera.getXMax());
+				float playerY = playerActor.getY();
+				
+				//remember 0,0 is at top left of the screen!
+				if(playerY<minY) {
+					minY = playerY;
+				}
+				
+				Log.d("MinY", String.valueOf(minY));
+				Log.d("MaxY", String.valueOf(maxY));
+				
+				
+				minY-=200; //add some loverly padding
+				maxY+=200;
+				
+				//lets calculate the zoom we need - based upon terrain and player
+
+				float zoom = camera.getHeightRaw()/(maxY-minY);
+				Log.d("Zoom", String.valueOf(minY) + " " + String.valueOf(maxY) + " " + String.valueOf(zoom));
+				//if(zoom<1){
+				//	zoom = 1;
+				//}
+				float cameraY = minY + (maxY-minY)/2.0f;
+				
+				camera.setCenter(cameraX , cameraY);
+				camera.setZoomFactor(zoom);
+			}
+			
+			
+		});
+		
+		//engine.getCamera().setChaseEntity(playerActor.getPrincipleEntity());
+		
+	}
+	
+	public PlayerActor createPlayer(float x, float y){
+		PlayerActor playerActor = new PlayerActor(x, y, engine, physicsWorld, this, textureRegionLibrary);
+		this.registerUpdateHandler(playerActor);
+		
+		
+		return playerActor;
+	}
+	
+	public void createTestBall(){
+		
+	}
+	 
+	
 	@Override
 	public void onScrollStarted(ScrollDetector pScollDetector, int pPointerID,
 			float pDistanceX, float pDistanceY) {
