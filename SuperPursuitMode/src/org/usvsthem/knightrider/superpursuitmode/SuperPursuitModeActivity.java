@@ -55,6 +55,7 @@ public class SuperPursuitModeActivity extends SimpleBaseGameActivity  {
 		createTextureRegion(textureAtlas, "rear_wheel.png",Textures.PlayerRearWheel);
 		createTextureRegion(textureAtlas, "front_wheel.png",Textures.PlayerFrontWheel);
 		createTextureRegion(textureAtlas, "scanner.png",Textures.PlayerScanner);
+		createTextureRegion(textureAtlas, "dust.png",Textures.DUST_PARTICLE);
 		
 		
 		try {

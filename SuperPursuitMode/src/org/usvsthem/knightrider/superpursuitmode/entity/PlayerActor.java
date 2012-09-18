@@ -6,6 +6,19 @@ import org.andengine.audio.sound.SoundManager;
 import org.andengine.engine.Engine;
 import org.andengine.engine.handler.IUpdateHandler;
 import org.andengine.entity.IEntity;
+import org.andengine.entity.modifier.LoopEntityModifier;
+import org.andengine.entity.modifier.ScaleModifier;
+import org.andengine.entity.modifier.SequenceEntityModifier;
+import org.andengine.entity.particle.ParticleSystem;
+import org.andengine.entity.particle.SpriteParticleSystem;
+import org.andengine.entity.particle.emitter.PointParticleEmitter;
+import org.andengine.entity.particle.initializer.AlphaParticleInitializer;
+import org.andengine.entity.particle.initializer.BlendFunctionParticleInitializer;
+import org.andengine.entity.particle.initializer.RotationParticleInitializer;
+import org.andengine.entity.particle.initializer.VelocityParticleInitializer;
+import org.andengine.entity.particle.modifier.AlphaParticleModifier;
+import org.andengine.entity.particle.modifier.ExpireParticleInitializer;
+import org.andengine.entity.particle.modifier.ScaleParticleModifier;
 import org.andengine.entity.shape.IAreaShape;
 import org.andengine.entity.shape.IShape;
 import org.andengine.entity.sprite.Sprite;
@@ -17,6 +30,9 @@ import org.andengine.opengl.font.FontLibrary;
 import org.andengine.opengl.texture.region.TextureRegionLibrary;
 import org.usvsthem.knightrider.superpursuitmode.Constants;
 import org.usvsthem.knightrider.superpursuitmode.Textures;
+
+import android.opengl.GLES20;
+import android.util.Log;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -47,6 +63,7 @@ public class PlayerActor implements IUpdateHandler{
 	private Body scannerBody;
 	private IAreaShape scannerShape;
 
+	private boolean jump;
 
 	private PhysicsConnector chasisPhysicsConnector;
 	private PhysicsConnector rearWheelPhysicsConnector;
@@ -58,20 +75,20 @@ public class PlayerActor implements IUpdateHandler{
 	
 	private static float REAR_WHEEL_FRICTION = 0.9f;
 	private static float REAR_WHEEL_RESTITUTION 	= 0f;
-	private static float REAR_WHEEL_DENSITY 	= 50f;//25f;
+	private static float REAR_WHEEL_DENSITY 	= 100f;//50f;//25f;
 	
 	private static float FRONT_WHEEL_RADIUS 	= 15f;
 	
 	private static float FRONT_WHEEL_FRICTION = 0.9f;
 	private static float FRONT_WHEEL_RESTITUTION 	= 0f;
-	private static float FRONT_WHEEL_DENSITY 	= 60f;
+	private static float FRONT_WHEEL_DENSITY 	= 100f;//60f;
 
 	private static float SCANNER_RADIUS =  25f;
 	
 	private static float CHASIS_WIDTH 	= 147f;
 	private static float CHASIS_HEIGHT 	= 55f;
 	
-	private static float CHASIS_DENSITY =  5f; //25f;  
+	private static float CHASIS_DENSITY =  10f;//5f; //25f;  
 	private static float CHASIS_RESTITUTION = 0f;
 	private static float CHASIS_FRICTION = 0.2f;
 	
@@ -89,12 +106,18 @@ public class PlayerActor implements IUpdateHandler{
 	private float y;
 	private LevelScene levelScene;
 	
+	private TextureRegionLibrary textureRegionLibrary;
+	
+	private boolean pursuitMode = false;
+	
+	
 	public PlayerActor(float x, float y, Engine engine,  PhysicsWorld physicsWorld, LevelScene levelScene, TextureRegionLibrary textureRegionLibrary){
 		this.x = x;
 		this.y = y;
 		this.engine = engine;
 		this.levelScene = levelScene;
 		this.physicsWorld = physicsWorld;
+		this.textureRegionLibrary = textureRegionLibrary;
 		
 		//Chasis
 		chasisBody = this.constructChasisBody();
@@ -104,7 +127,7 @@ public class PlayerActor implements IUpdateHandler{
 		physicsWorld.registerPhysicsConnector(chasisPhysicsConnector);
 
 		//Rear wheel body
-		rearWheelBody = this.constructWheelBody(18,35,REAR_WHEEL_RADIUS,REAR_WHEEL_DENSITY, REAR_WHEEL_RESTITUTION, REAR_WHEEL_FRICTION);
+		rearWheelBody = this.constructWheelBody(18,33,REAR_WHEEL_RADIUS,REAR_WHEEL_DENSITY, REAR_WHEEL_RESTITUTION, REAR_WHEEL_FRICTION);
 		rearWheelShape = new Sprite(0,0,REAR_WHEEL_RADIUS*2,REAR_WHEEL_RADIUS*2, textureRegionLibrary.get(Textures.PlayerRearWheel), engine.getVertexBufferObjectManager());
 		levelScene.attachChild(rearWheelShape);
 		rearWheelPhysicsConnector = new PhysicsConnector(rearWheelShape, rearWheelBody, true, true);
@@ -119,14 +142,17 @@ public class PlayerActor implements IUpdateHandler{
 	
 		constructLineJoint(rearWheelBody,chasisBody,-0.05f,0.05f);
 		constructLineJoint(frontWheelBody,chasisBody,-0.05f,0.05f);
-		//constructRevoluteJoint(frontWheelBody,chasisBody);
-		//constructRevoluteJoint(rearWheelBody,chasisBody);
-		
+
 		//construct scanner
 		scannerShape = new Sprite(SCANNER_X_OFFSET,SCANNER_Y_OFFSET,SCANNER_RADIUS*2,SCANNER_RADIUS*2, textureRegionLibrary.get(Textures.PlayerScanner), engine.getVertexBufferObjectManager());
 		chasisShape.attachChild(scannerShape);
 		scannerShape.setZIndex(-1);
 		
+		LoopEntityModifier scannerEntityModifier = new LoopEntityModifier( new SequenceEntityModifier(new ScaleModifier(1, 0.3f, 1f),new ScaleModifier(1, 1f, 0.3f)));
+		scannerShape.registerEntityModifier(scannerEntityModifier);
+		
+		constructDustParticleSystem();
+	
 	}
 	
 	public float getX() {
@@ -216,6 +242,7 @@ public class PlayerActor implements IUpdateHandler{
 		return physicsWorld.createJoint(lineJointDef);
 	}
 	
+	/*
 	private Joint constructRevoluteJoint(Body pWheel, Body pChassis){
 		RevoluteJointDef  revoluteJointDef = new RevoluteJointDef();
 		revoluteJointDef.initialize(pChassis, pWheel, pWheel.getWorldCenter());
@@ -228,24 +255,80 @@ public class PlayerActor implements IUpdateHandler{
 		//lineJointDef.motorSpeed = 0;
 		//lineJointDef.maxMotorForce = 10;
 		return physicsWorld.createJoint(revoluteJointDef);
+	}*/
+	
+	PointParticleEmitter pointParticleEmitter;
+	SpriteParticleSystem particleSystem;
+	
+	private void constructDustParticleSystem(){	
+		//Why add and start the particles so that we dont get a judder the first time they
+		//appear on screen. Shit no?
+		pointParticleEmitter = new PointParticleEmitter(Constants.OFF_SCREEN_X,Constants.OFF_SCREEN_Y);
+		
+		particleSystem = new SpriteParticleSystem(pointParticleEmitter,10, 20, 100, textureRegionLibrary.get(Textures.DUST_PARTICLE), engine.getVertexBufferObjectManager());
+		//particleSystem.addParticleInitializer(new BlendFunctionParticleInitializer<Sprite>(GLES20.GL_SRC_ALPHA,GLES20.GL_ONE));
+		//particleSystem.setBlendFunction(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+		//particleSystem.addParticleInitializer(new  AlphaParticleInitializer(0.5f));
+		particleSystem.addParticleInitializer(new ExpireParticleInitializer(3, 6));
+		particleSystem.addParticleInitializer(new VelocityParticleInitializer(-2, 2, -40, -20));
+		//particleSystem.addParticleModifier(new ScaleParticleModifier(1f, 2f, 0, 5));
+		//particleSystem.addParticleModifier(new AlphaParticleModifier(0, 10, 0.5f, 0f));
+		particleSystem.addParticleInitializer(new RotationParticleInitializer(0.0f, 360.0f));
+        levelScene.attachChild(particleSystem);
+        particleSystem.setParticlesSpawnEnabled(true);
+       
+			
 	}
 	
 	
 	
 	private void applyEngineForces(){
-		if(engineRunning==true){
-			if(chasisBody.getLinearVelocity().len()<maxSpeed){	
-				rearWheelBody.applyForce(forwardForce, forwardForceApplicationPoint);
-				//frontWheelBody.applyForce(forwardForce, forwardForceApplicationPoint);
-			}	
+		
+		Log.d("APPLYING TORQUE","");
+		rearWheelBody.applyTorque(100);
+		//frontWheelBody.applyTorque(200);
+		
+		//if(pursuitMode==true) {
+		//	rearWheelBody.applyForce(new Vector2(200,0), forwardForceApplicationPoint);
+		//}	
+		//} else if(chasisBody.getLinearVelocity().len()<maxSpeed){	
+			//rearWheelBody.applyForce(forwardForce, forwardForceApplicationPoint);
+			//frontWheelBody.applyForce(forwardForce, forwardForceApplicationPoint);
+		//}	
+		
+		if(jump==true){
+			jump = false;
+			
+			//if(isInContact()){ //used instead of mWheelInContact since mWheelInContact may be wrong!
+				//Can we jump
+				chasisBody.applyForce(new Vector2(0, -75000),chasisBody.getWorldCenter());
+			//}
 		}
+		
 	}
+	
 
+	public void setPursuitMode(boolean pursuitMode){
+		this.pursuitMode = pursuitMode;
+	}
+	
+	public void jump(){
+		jump = true;
+	}
 
 	@Override
 	public void onUpdate(float pSecondsElapsed) {
 		// TODO Auto-generated method stub
 		applyEngineForces();
+		
+		//if(frontWheelBody.getAngularVelocity()>1){
+		//	particleSystem.setParticlesSpawnEnabled(true);
+		//} else {
+		//	particleSystem.setParticlesSpawnEnabled(false);
+		//}
+		
+		//pointParticleEmitter.setCenter(frontWheelShape.getX(), frontWheelShape.getY());
+		
 	}
 
 	@Override

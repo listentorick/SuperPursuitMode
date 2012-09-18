@@ -30,12 +30,12 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 
-public class LevelScene extends Scene implements IScrollDetectorListener{
+public class LevelScene extends Scene {
 	
 	public static int ACTOR_INDEX = 0;
 	
 	private Engine engine;
-	private SurfaceScrollDetector scrollDetector;
+	//private SurfaceScrollDetector scrollDetector;
 	private Terrain terrain;
 	private PhysicsWorld physicsWorld;
 	private static final Vector2 GRAVITY = new Vector2(0.0F, SensorManager.GRAVITY_EARTH);
@@ -89,14 +89,22 @@ public class LevelScene extends Scene implements IScrollDetectorListener{
 		this.attachChild(terrain);
 		this.registerUpdateHandler(terrain);
 		
-		this.scrollDetector = new SurfaceScrollDetector(this);	
-		scrollDetector.setTriggerScrollMinimumDistance(100);
+		//this.scrollDetector = new SurfaceScrollDetector(this);	
+		//scrollDetector.setTriggerScrollMinimumDistance(100);
 		
 		this.setOnSceneTouchListener(new IOnSceneTouchListener() {
 			
 			@Override
 			public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
-				scrollDetector.onTouchEvent(pSceneTouchEvent);	
+				
+				if(pSceneTouchEvent.isActionUp()) {
+					//playerActor.setPursuitMode(false);
+					playerActor.jump();
+				}
+				//if(pSceneTouchEvent.isActionDown()){
+				//	playerActor.setPursuitMode(true);
+				//}
+					
 				return false;
 			}
 		});
@@ -141,7 +149,7 @@ public class LevelScene extends Scene implements IScrollDetectorListener{
 				// TODO Auto-generated method stub
 				SmoothCamera camera = (SmoothCamera) engine.getCamera();
 				
-				float cameraX = playerActor.getX()+(camera.getWidth()/2);
+				float cameraX = playerActor.getX()+(camera.getWidth()/2 -200);
 				
 				//float y1 = terrain.getTerrainHeightAtX(cameraX-camera.getWidth()/2);
 				//float y2 = terrain.getTerrainHeightAtX(cameraX+ camera.getWidth()/2);
@@ -194,7 +202,7 @@ public class LevelScene extends Scene implements IScrollDetectorListener{
 		
 	}
 	 
-	
+	/*
 	@Override
 	public void onScrollStarted(ScrollDetector pScollDetector, int pPointerID,
 			float pDistanceX, float pDistanceY) {
@@ -216,7 +224,7 @@ public class LevelScene extends Scene implements IScrollDetectorListener{
 		// TODO Auto-generated method stub
 		terrain.setOffset(0, 0);
 		
-	}
+	}*/
 	
 
 

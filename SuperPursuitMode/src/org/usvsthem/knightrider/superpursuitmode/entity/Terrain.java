@@ -203,7 +203,7 @@ public class Terrain extends Entity {
 		
 		 PolygonShape boxPoly = new PolygonShape();
 		 boxPoly.setAsEdge(new Vector2(point1.x / PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT, point1.y/PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT), new Vector2(point2.x/PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT,point2.y/PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT));
-		 FixtureDef fixtureDef = PhysicsFactory.createFixtureDef(1, 1, 1);
+		 FixtureDef fixtureDef = PhysicsFactory.createFixtureDef(1, 0.9f, 1);
 		 fixtureDef.shape = boxPoly;
 		 return fixtureDef;
 	}
