@@ -114,6 +114,7 @@ public class LevelScene extends Scene {
 	
 	public void createPhysicsWorld(){
 		this.physicsWorld = new PhysicsWorld(new Vector2(0,9.8f), true);
+		this.physicsWorld.setContinuousPhysics(false);
 		
 		this.registerUpdateHandler(new IUpdateHandler() {
 			

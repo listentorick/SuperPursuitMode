@@ -285,7 +285,10 @@ public class PlayerActor implements IUpdateHandler{
 	private void applyEngineForces(){
 		
 		Log.d("APPLYING TORQUE","");
-		rearWheelBody.applyTorque(100);
+		rearWheelBody.applyTorque(200);
+		Log.d("MASS",chasisBody.getMass() + " " + rearWheelBody.getMass());
+		
+		
 		//frontWheelBody.applyTorque(200);
 		
 		//if(pursuitMode==true) {
