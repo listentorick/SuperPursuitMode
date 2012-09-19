@@ -75,20 +75,20 @@ public class PlayerActor implements IUpdateHandler{
 	
 	private static float REAR_WHEEL_FRICTION = 0.9f;
 	private static float REAR_WHEEL_RESTITUTION 	= 0f;
-	private static float REAR_WHEEL_DENSITY 	= 100f;//50f;//25f;
+	private static float REAR_WHEEL_DENSITY 	= 200f;//100f//50f;//25f;
 	
 	private static float FRONT_WHEEL_RADIUS 	= 15f;
 	
 	private static float FRONT_WHEEL_FRICTION = 0.9f;
 	private static float FRONT_WHEEL_RESTITUTION 	= 0f;
-	private static float FRONT_WHEEL_DENSITY 	= 100f;//60f;
+	private static float FRONT_WHEEL_DENSITY 	= 200f;//100f//60f;
 
 	private static float SCANNER_RADIUS =  25f;
 	
 	private static float CHASIS_WIDTH 	= 147f;
 	private static float CHASIS_HEIGHT 	= 55f;
 	
-	private static float CHASIS_DENSITY =  10f;//5f; //25f;  
+	private static float CHASIS_DENSITY =  200f;//5f; //25f;  
 	private static float CHASIS_RESTITUTION = 0f;
 	private static float CHASIS_FRICTION = 0.2f;
 	
@@ -97,7 +97,7 @@ public class PlayerActor implements IUpdateHandler{
 	
 	private static short PLAYER_ACTOR_GROUP_INDEX 	= -1;
 	
-	float maxSpeed = 30f;
+	float maxSpeed = 15f;
 	private boolean engineRunning = true;
 	private Vector2 forwardForce = new Vector2(50, 0);
 	private Vector2 forwardForceApplicationPoint = new Vector2(0,5);
@@ -284,27 +284,29 @@ public class PlayerActor implements IUpdateHandler{
 	
 	private void applyEngineForces(){
 		
-		Log.d("APPLYING TORQUE","");
-		rearWheelBody.applyTorque(200);
+		Log.d("SPEED","" + chasisBody.getLinearVelocity().len());
+		//rearWheelBody.applyTorque(2400);
 		Log.d("MASS",chasisBody.getMass() + " " + rearWheelBody.getMass());
 		
 		
 		//frontWheelBody.applyTorque(200);
 		
 		//if(pursuitMode==true) {
-		//	rearWheelBody.applyForce(new Vector2(200,0), forwardForceApplicationPoint);
+		//
 		//}	
-		//} else if(chasisBody.getLinearVelocity().len()<maxSpeed){	
-			//rearWheelBody.applyForce(forwardForce, forwardForceApplicationPoint);
-			//frontWheelBody.applyForce(forwardForce, forwardForceApplicationPoint);
-		//}	
+		if(chasisBody.getLinearVelocity().len()<maxSpeed){	
+			rearWheelBody.applyTorque(2400);
+			//rearWheelBody.applyForce(new Vector2(2000,0), forwardForceApplicationPoint);
+		}	
 		
 		if(jump==true){
 			jump = false;
 			
 			//if(isInContact()){ //used instead of mWheelInContact since mWheelInContact may be wrong!
 				//Can we jump
-				chasisBody.applyForce(new Vector2(0, -75000),chasisBody.getWorldCenter());
+				chasisBody.applyForce(new Vector2(0, -450000),chasisBody.getWorldCenter());
+				Vector2 raiseNose = new Vector2(chasisBody.getWorldCenter().x+CHASIS_WIDTH/3,chasisBody.getWorldCenter().y);
+				chasisBody.applyForce(new Vector2(0, -1000),raiseNose);
 			//}
 		}
 		

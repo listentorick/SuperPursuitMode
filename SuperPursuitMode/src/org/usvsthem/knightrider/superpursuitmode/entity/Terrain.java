@@ -46,12 +46,26 @@ public class Terrain extends Entity {
 		//physicsFactory = new PhysicsFactory();
 		this.terrainBody = createTerrainBody();
 		
-		this.keyPoints = this.generateTerrain(new ArrayList<Vector2>());
+		this.keyPoints = this.generateStartTerrain(new ArrayList<Vector2>());
 		this.bufferData = populateBuffer(keyPoints);
 		
 		this.path = new Path(0, 0, bufferData,engine.getVertexBufferObjectManager());
 		this.path.setColor(1.0f,1.0f,0.1f);
 		this.attachChild(path);
+		
+	}
+	
+	public ArrayList<Vector2> generateStartTerrain(ArrayList<Vector2> keyPoints){
+		Vector2 previousPoint = new Vector2(0,200);
+		keyPoints.add(previousPoint);
+		Vector2 newPoint;
+		for(int i=1; i< numKeyPoints;i++){
+			newPoint = new Vector2(i*100,200);
+			keyPoints.add(newPoint);
+			createFixtureAndAddBody(previousPoint,newPoint);
+			previousPoint = newPoint;
+		}
+		return keyPoints;
 		
 	}
 	

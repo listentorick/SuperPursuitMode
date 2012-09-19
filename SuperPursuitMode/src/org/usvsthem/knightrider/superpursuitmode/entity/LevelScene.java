@@ -8,6 +8,7 @@ import org.andengine.entity.scene.IOnSceneTouchListener;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.Background;
 import org.andengine.entity.sprite.Sprite;
+import org.andengine.extension.physics.box2d.FixedStepPhysicsWorld;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
 import org.andengine.extension.physics.box2d.PhysicsFactory;
 import org.andengine.extension.physics.box2d.PhysicsWorld;
@@ -113,6 +114,7 @@ public class LevelScene extends Scene {
 	}
 	
 	public void createPhysicsWorld(){
+		//this.physicsWorld = new FixedStepPhysicsWorld(30,new Vector2(0,9.8f), true);
 		this.physicsWorld = new PhysicsWorld(new Vector2(0,9.8f), true);
 		this.physicsWorld.setContinuousPhysics(false);
 		
