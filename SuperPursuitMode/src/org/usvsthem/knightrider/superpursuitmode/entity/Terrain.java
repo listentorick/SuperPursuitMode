@@ -33,8 +33,8 @@ public class Terrain extends Entity {
 	private Random r;
 	private  int rangeDX = 80;
     private int rangeDY = 40;
-    private float minDX = 800;
-    private float minDY = 50;
+    private float minDX = 400;
+    private float minDY = 100;
 	private Path path;
 	private PhysicsWorld physicsWorld;
 	//private PhysicsFactory physicsFactory;
@@ -77,12 +77,33 @@ public class Terrain extends Entity {
 		
 	}*/
 	
+	/*
+	public ArrayList<Vector2> getKeyPointRange(float startX, float finishX) {
+		
+		ArrayList<Vector2> points = new ArrayList<Vector2>();
+		Vector2 point1;
+
+		for(int i=0; i<keyPoints.size();i++){
+			point1 = keyPoints.get(i);
+
+			if(point1.x > startX  && point1.x < finishX){
+				points.add(point1);
+			}
+		}
+		return points;
+	}*/
+	
 	public float getMinTerrainHeightInRange(float x1, float x2){
-		float minY = keyPoints.get(0).y;
+		//float minY = keyPoints.get(0).y;
+		float minY  = 1000000;
+		Vector2 point; 
 		
 		for(int i=0; i<keyPoints.size();i++){
-			if(keyPoints.get(i).y<minY) {;
-				minY = keyPoints.get(i).y;
+			point = keyPoints.get(i);
+			if(point.x > x1  && point.x < x2){
+				if(keyPoints.get(i).y<minY) {;
+					minY = keyPoints.get(i).y;
+				}
 			}
 		}
 		
@@ -90,18 +111,24 @@ public class Terrain extends Entity {
 	}
 	
 	public float getMaxTerrainHeightInRange(float x1, float x2){
+		
 		float maxY = 0;
+		Vector2 point; 
 		
 		for(int i=0; i<keyPoints.size();i++){
-			if(keyPoints.get(i).y>maxY) {;
-				maxY = keyPoints.get(i).y;
+			point = keyPoints.get(i);
+			if(point.x > x1  && point.x < x2){
+				if(keyPoints.get(i).y>maxY) {;
+					maxY = keyPoints.get(i).y;
+				}
 			}
 		}
 		
-		return maxY;	
+		return maxY;
 		
 	}
 	
+	/*
 	public float getTerrainHeightAtX(float x){
 		for(int i=0; i<keyPoints.size()-2;i++){
 			float x1 = keyPoints.get(i).x;
@@ -111,9 +138,9 @@ public class Terrain extends Entity {
 			}
 		}
 		return 0;
-	}
+	}*/
 	
-	
+	/*
 	public Vector2 calculatePointPosition(float startX, float distance){
 		
 		float x1 = 0;
@@ -184,7 +211,7 @@ public class Terrain extends Entity {
 		
 		//return null;
 	}
-	
+	*/
 	private float[] populateBuffer(ArrayList<Vector2> keyPoints){
 		
 		int bufferSize = numPoints*3;
@@ -310,7 +337,7 @@ public class Terrain extends Entity {
 		
 		 PolygonShape boxPoly = new PolygonShape();
 		 boxPoly.setAsEdge(new Vector2(point1.x / PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT, point1.y/PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT), new Vector2(point2.x/PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT,point2.y/PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT));
-		 FixtureDef fixtureDef = PhysicsFactory.createFixtureDef(1, 0.9f, 1);
+		 FixtureDef fixtureDef = PhysicsFactory.createFixtureDef(1, 0.6f, 1);
 		 fixtureDef.shape = boxPoly;
 		 return fixtureDef;
 	}

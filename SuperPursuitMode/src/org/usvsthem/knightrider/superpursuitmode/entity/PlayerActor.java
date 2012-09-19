@@ -52,66 +52,23 @@ public class PlayerActor implements IUpdateHandler{
 	private Engine engine;
 	private PhysicsWorld physicsWorld;
 	
-	private Body chasisBody;
-	private IAreaShape chasisShape;
-	
-	private Body rearWheelBody;
-	private IAreaShape rearWheelShape;
-
-	private Body frontWheelBody;
-	private IAreaShape frontWheelShape;
-	
-	private Body scannerBody;
-	private IAreaShape scannerShape;
-
-	private boolean jump;
-
-	private PhysicsConnector chasisPhysicsConnector;
-	private PhysicsConnector rearWheelPhysicsConnector;
-	private PhysicsConnector frontWheelPhysicsConnector;
-	
-	//wheels are MUCH heavier (factor of 10) than the chasis to help prevent the wheels 'dragging'
-
-	private static float REAR_WHEEL_RADIUS 	= 17f;
-	
-	private static float REAR_WHEEL_FRICTION = 0.9f;
-	private static float REAR_WHEEL_RESTITUTION 	= 0f;
-	private static float REAR_WHEEL_DENSITY 	= 2f;// 2f;//1f; //100f;//100f//50f;//25f;
-	
-	private static float FRONT_WHEEL_RADIUS 	= 15f;
-	
-	private static float FRONT_WHEEL_FRICTION = 0.9f;
-	private static float FRONT_WHEEL_RESTITUTION 	= 0f;
-	private static float FRONT_WHEEL_DENSITY 	= 1f;// 100f;//100f//60f;
-
-	private static float SCANNER_RADIUS =  25f;
-	
-	private static float CHASIS_WIDTH 	= 147f;
-	private static float CHASIS_HEIGHT 	= 55f;
-	
-	private static float CHASIS_DENSITY =  2f;//200f;//5f; //25f;  
-	private static float CHASIS_RESTITUTION = 0f;
-	private static float CHASIS_FRICTION = 0.2f;
-	
-	private static float SCANNER_X_OFFSET = 115f;
-	private static float SCANNER_Y_OFFSET = 15f;
-	
-	private static short PLAYER_ACTOR_GROUP_INDEX 	= -1;
-	
-	float maxSpeed = 15f;
-	private boolean engineRunning = true;
-	private Vector2 forwardForce = new Vector2(50, 0);
-	private Vector2 forwardForceApplicationPoint = new Vector2(0,5);
+	private Body heroBody;
+	private IAreaShape heroShape;
 
 	private float x;
 	private float y;
 	private LevelScene levelScene;
-	
 	private TextureRegionLibrary textureRegionLibrary;
+		
+	private static float HERO_RADIUS = 16f;
+	private static float HERO_DENSITY = 1.0f;
+	private static float HERO_RESTITUTION = 0.0f;
+	private static float HERO_FRICTION = 0.5f;
 	
-	private boolean pursuitMode = false;
+	private PhysicsConnector heroPhysicsConnector;
 	
-	private RevoluteJoint rearWheelRevoluteJoint;
+	private boolean jump;
+	private boolean awake;
 	
 	public PlayerActor(float x, float y, Engine engine,  PhysicsWorld physicsWorld, LevelScene levelScene, TextureRegionLibrary textureRegionLibrary){
 		this.x = x;
@@ -121,64 +78,72 @@ public class PlayerActor implements IUpdateHandler{
 		this.physicsWorld = physicsWorld;
 		this.textureRegionLibrary = textureRegionLibrary;
 		
-		//Chasis
-		chasisBody = this.constructChasisBody();
-		chasisShape = new Sprite(0,0,CHASIS_WIDTH,CHASIS_HEIGHT, textureRegionLibrary.get(Textures.PlayerChasis), engine.getVertexBufferObjectManager());
-		levelScene.attachChild(chasisShape);
-		chasisPhysicsConnector = new PhysicsConnector(chasisShape, chasisBody, true, true);
-		physicsWorld.registerPhysicsConnector(chasisPhysicsConnector);
+		heroBody = this.constructHero();
+		
+		heroShape = new Sprite(0,0,HERO_RADIUS * 2,HERO_RADIUS * 2, textureRegionLibrary.get(Textures.PlayerChasis), engine.getVertexBufferObjectManager());
+		levelScene.attachChild(heroShape);
+	
+		heroPhysicsConnector = new PhysicsConnector(heroShape, heroBody, true, true);
+		physicsWorld.registerPhysicsConnector(heroPhysicsConnector);
 
-		//Rear wheel body
-		rearWheelBody = this.constructWheelBody(18,33,REAR_WHEEL_RADIUS,REAR_WHEEL_DENSITY, REAR_WHEEL_RESTITUTION, REAR_WHEEL_FRICTION);
-		rearWheelShape = new Sprite(0,0,REAR_WHEEL_RADIUS*2,REAR_WHEEL_RADIUS*2, textureRegionLibrary.get(Textures.PlayerRearWheel), engine.getVertexBufferObjectManager());
-		levelScene.attachChild(rearWheelShape);
-		rearWheelPhysicsConnector = new PhysicsConnector(rearWheelShape, rearWheelBody, true, true);
-		physicsWorld.registerPhysicsConnector(rearWheelPhysicsConnector);
-		
-		//Front Wheel
-		frontWheelBody = this.constructWheelBody(100,40,FRONT_WHEEL_RADIUS,FRONT_WHEEL_DENSITY, FRONT_WHEEL_RESTITUTION, FRONT_WHEEL_FRICTION);
-		frontWheelShape = new Sprite(0,0,FRONT_WHEEL_RADIUS*2,FRONT_WHEEL_RADIUS*2, textureRegionLibrary.get(Textures.PlayerRearWheel), engine.getVertexBufferObjectManager());
-		levelScene.attachChild(frontWheelShape);
-		frontWheelPhysicsConnector = new PhysicsConnector(frontWheelShape, frontWheelBody, true, true);
-		physicsWorld.registerPhysicsConnector(frontWheelPhysicsConnector);
-	
-		//constructLineJoint(rearWheelBody,chasisBody,-0.05f,0.05f);
-		//constructLineJoint(frontWheelBody,chasisBody,-0.05f,0.05f);
-		
-		constructLineJoint(rearWheelBody,chasisBody,0f,0.2f,10,100);
-		constructLineJoint(frontWheelBody,chasisBody,0f,0.1f,10,100);
-	
-		
-		//RevoluteJoint front = constructRevoluteJoint(rearWheelBody,chasisBody);
-		//rearWheelRevoluteJoint = constructRevoluteJoint(frontWheelBody,chasisBody);
-		
-		//front.setMotorSpeed(30f);
-		//rearWheelRevoluteJoint.setMotorSpeed(30f);
-		
-		//construct scanner
-		scannerShape = new Sprite(SCANNER_X_OFFSET,SCANNER_Y_OFFSET,SCANNER_RADIUS*2,SCANNER_RADIUS*2, textureRegionLibrary.get(Textures.PlayerScanner), engine.getVertexBufferObjectManager());
-		chasisShape.attachChild(scannerShape);
-		scannerShape.setZIndex(-1);
-		
-		LoopEntityModifier scannerEntityModifier = new LoopEntityModifier( new SequenceEntityModifier(new ScaleModifier(1, 0.3f, 1f),new ScaleModifier(1, 1f, 0.3f)));
-		scannerShape.registerEntityModifier(scannerEntityModifier);
-		
-		constructDustParticleSystem();
-	
 	}
 	
 	public float getX() {
-		return this.chasisShape.getX();
+		return this.heroShape.getX();
 	}
 	
 	public float getY() {
-		return this.chasisShape.getY();
+		return this.heroShape.getY();
 	}
 	
 	public IEntity getPrincipleEntity(){
-		return chasisShape;
+		return heroShape;
 	}
 	
+
+	private Body constructHero(){
+		
+		BodyDef chasisBodyDef = new BodyDef();
+		chasisBodyDef.type = BodyType.DynamicBody;
+		chasisBodyDef.linearDamping = 0.5f;
+		chasisBodyDef.angularDamping = 0.5f;
+		chasisBodyDef.fixedRotation  = true;
+		
+		chasisBodyDef.position.x = (this.x + HERO_RADIUS)/PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT;
+		chasisBodyDef.position.y = (this.y + HERO_RADIUS)/ PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT;
+		Body chasisBody = this.physicsWorld.createBody(chasisBodyDef);
+		
+		CircleShape circleShape = new CircleShape();
+		circleShape.setRadius(HERO_RADIUS / PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT);
+		FixtureDef fixtureDef = PhysicsFactory.createFixtureDef(HERO_DENSITY, HERO_RESTITUTION, HERO_FRICTION);
+		fixtureDef.shape = circleShape; 
+		chasisBody.createFixture(fixtureDef);
+		
+		return chasisBody;
+	
+	}
+	
+	
+/*
+		 
+		- (void) limitVelocity {    
+		    if (!_awake) return;
+		 
+		    const float minVelocityX = 5;
+		    const float minVelocityY = -40;
+		    b2Vec2 vel = _body->GetLinearVelocity();
+		    if (vel.x < minVelocityX) {
+		        vel.x = minVelocityX;
+		    }
+		    if (vel.y < minVelocityY) {
+		        vel.y = minVelocityY;
+		    }
+		    _body->SetLinearVelocity(vel);
+		}
+	
+	*/
+	
+	/*
 	private Body constructChasisBody(){
 		BodyDef chasisBodyDef = new BodyDef();
 		chasisBodyDef.type = BodyType.DynamicBody;
@@ -274,8 +239,9 @@ public class PlayerActor implements IUpdateHandler{
 		//lineJointDef.motorSpeed = 0;
 		//lineJointDef.maxMotorForce = 10;
 		return (RevoluteJoint) physicsWorld.createJoint(revoluteJointDef);
-	}
+	}*/
 	
+	/*
 	PointParticleEmitter pointParticleEmitter;
 	SpriteParticleSystem particleSystem;
 	
@@ -298,9 +264,9 @@ public class PlayerActor implements IUpdateHandler{
        
 			
 	}
+	*/
 	
-	
-	
+	/*
 	private void applyEngineForces(){
 		
 		Log.d("SPEED","" + chasisBody.getLinearVelocity().len());
@@ -336,19 +302,64 @@ public class PlayerActor implements IUpdateHandler{
 				
 		}
 		
-	}
+	}*/
 	
-
+/*
 	public void setPursuitMode(boolean pursuitMode){
 		this.pursuitMode = pursuitMode;
 	}
+	*/
 	
-	public void jump(){
+	
+	public void startJump(){
 		jump = true;
 	}
+	
+	public void endJump(){
+		jump = false;
+	}
 
+	
+	private void limitVelocity(){
+		
+		    if (!awake) return;
+		 
+		    float minVelocityX = 5;
+		    float minVelocityY = -40;
+		    
+		    Vector2 vel = heroBody.getLinearVelocity();
+		    
+		    if (vel.x < minVelocityX) {
+		        vel.x = minVelocityX;
+		    }
+		    if (vel.y < minVelocityY) {
+		        vel.y = minVelocityY;
+		    }
+		    heroBody.setLinearVelocity(vel);
+		
+	}
+	
+	public void wake () {
+	    awake = true;
+	    heroBody.setActive(true);
+	    //heroBody.applyLinearImpulse(new Vector2(1,2), heroBody.getPosition());
+	}
+	
 	@Override
 	public void onUpdate(float pSecondsElapsed) {
+		
+		
+		if(jump==true) {
+			
+			heroBody.applyForce(new Vector2(5,-50), heroBody.getPosition());
+		}
+		
+		limitVelocity();
+		
+		
+		
+		
+		
 		// TODO Auto-generated method stub
 		//applyEngineForces();
 		

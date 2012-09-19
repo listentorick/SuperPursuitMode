@@ -55,7 +55,10 @@ public class LevelScene extends Scene {
 		createTerrain();
 		
 		
-		this.playerActor = createPlayer(0, 0);
+		this.playerActor = createPlayer(0, 180);
+		
+		playerActor.wake();
+		
 		configureCamera();
 		
 		this.registerUpdateHandler(new IUpdateHandler() {
@@ -100,18 +103,18 @@ public class LevelScene extends Scene {
 				
 				if(pSceneTouchEvent.isActionUp()) {
 					//playerActor.setPursuitMode(false);
-					playerActor.jump();
+					playerActor.endJump();
 				}
-				//if(pSceneTouchEvent.isActionDown()){
-				//	playerActor.setPursuitMode(true);
-				//}
+				if(pSceneTouchEvent.isActionDown()){
+					playerActor.startJump();
+				}
 					
 				return false;
 			}
 		});
 		
 		
-		Vector2 position = terrain.calculatePointPosition(100,100);
+		//Vector2 position = terrain.calculatePointPosition(100,100);
 		
 		
 		//Sprite chasisShape = new Sprite(position.x,position.y,147,55, textureRegionLibrary.get(Textures.PlayerChasis), engine.getVertexBufferObjectManager());
@@ -120,10 +123,13 @@ public class LevelScene extends Scene {
 		
 	}
 	
+	
+	
+	
 	public void createPhysicsWorld(){
-		//this.physicsWorld = new FixedStepPhysicsWorld(30,new Vector2(0,9.8f), true);
-		this.physicsWorld = new PhysicsWorld(new Vector2(0,9.8f), true);
-		this.physicsWorld.setContinuousPhysics(false);
+		this.physicsWorld = new FixedStepPhysicsWorld(60,new Vector2(0,9.8f), true);
+		//this.physicsWorld = new PhysicsWorld(new Vector2(0,9.8f), true);
+		//this.physicsWorld.setContinuousPhysics(false);
 		
 		this.registerUpdateHandler(new IUpdateHandler() {
 			
@@ -136,6 +142,7 @@ public class LevelScene extends Scene {
 			@Override
 			public void onUpdate(float pSecondsElapsed) {
 				// TODO Auto-generated method stub
+
 				physicsWorld.onUpdate(pSecondsElapsed);
 				
 				
@@ -177,8 +184,8 @@ public class LevelScene extends Scene {
 				Log.d("MaxY", String.valueOf(maxY));
 				
 				
-				minY-=200; //add some loverly padding
-				maxY+=200;
+			//	minY-=200; //add some loverly padding
+			//	maxY+=200;
 				
 				//lets calculate the zoom we need - based upon terrain and player
 
@@ -190,7 +197,7 @@ public class LevelScene extends Scene {
 				float cameraY = minY + (maxY-minY)/2.0f;
 				
 				camera.setCenter(cameraX , cameraY);
-				camera.setZoomFactor(zoom);
+				//camera.setZoomFactor(zoom);
 			}
 			
 			
