@@ -76,7 +76,7 @@ public class PlayerActor implements IUpdateHandler{
 	
 	private static float REAR_WHEEL_FRICTION = 0.9f;
 	private static float REAR_WHEEL_RESTITUTION 	= 0f;
-	private static float REAR_WHEEL_DENSITY 	= 2f;//1f; //100f;//100f//50f;//25f;
+	private static float REAR_WHEEL_DENSITY 	= 2f;// 2f;//1f; //100f;//100f//50f;//25f;
 	
 	private static float FRONT_WHEEL_RADIUS 	= 15f;
 	
@@ -145,8 +145,8 @@ public class PlayerActor implements IUpdateHandler{
 		//constructLineJoint(rearWheelBody,chasisBody,-0.05f,0.05f);
 		//constructLineJoint(frontWheelBody,chasisBody,-0.05f,0.05f);
 		
-		constructLineJoint(rearWheelBody,chasisBody,0f,0.2f);
-		constructLineJoint(frontWheelBody,chasisBody,0f,0.2f);
+		constructLineJoint(rearWheelBody,chasisBody,0f,0.2f,10,100);
+		constructLineJoint(frontWheelBody,chasisBody,0f,0.1f,10,100);
 	
 		
 		//RevoluteJoint front = constructRevoluteJoint(rearWheelBody,chasisBody);
@@ -235,7 +235,7 @@ public class PlayerActor implements IUpdateHandler{
 	}
 	
 	
-	private Joint constructLineJoint(Body pWheel, Body pChassis, float pLowerTranslation, float pUpperTranslation){
+	private Joint constructLineJoint(Body pWheel, Body pChassis, float pLowerTranslation, float pUpperTranslation, float maxSpeed, float maxForce){
 		LineJointDef lineJointDef = new LineJointDef();
 		lineJointDef.initialize(pChassis, pWheel, pWheel.getWorldCenter(),new Vector2(0f, 1f));
 		lineJointDef.collideConnected = false;
@@ -247,8 +247,8 @@ public class PlayerActor implements IUpdateHandler{
 		//lineJointDef.motorSpeed = 100f; //The spring portion of the shock absorber is modeled by creating friction using the motor variables
 		//lineJointDef.maxMotorForce = 80f;
 		
-		lineJointDef.motorSpeed = 10f; //The spring portion of the shock absorber is modeled by creating friction using the motor variables
-		lineJointDef.maxMotorForce = 100f;
+		lineJointDef.motorSpeed = maxSpeed; //10f; //The spring portion of the shock absorber is modeled by creating friction using the motor variables
+		lineJointDef.maxMotorForce = maxForce; //100f;
 		
 		// jd.motorSpeed = 1.0f;
          //jd.maxMotorTorque = 10.0f;
@@ -329,9 +329,9 @@ public class PlayerActor implements IUpdateHandler{
 			
 			//if(isInContact()){ //used instead of mWheelInContact since mWheelInContact may be wrong!
 				//Can we jump
-				chasisBody.applyForce(new Vector2(0, -5000),chasisBody.getWorldCenter());
-				//Vector2 raiseNose = new Vector2(chasisBody.getWorldCenter().x+CHASIS_WIDTH/3,chasisBody.getWorldCenter().y);
-				//chasisBody.applyForce(new Vector2(0, -100),raiseNose);
+				chasisBody.applyForce(new Vector2(0, -10000),chasisBody.getWorldCenter());
+				Vector2 raiseNose = new Vector2(chasisBody.getWorldCenter().x-CHASIS_WIDTH/3,chasisBody.getWorldCenter().y);
+				chasisBody.applyForce(new Vector2(0, -10),raiseNose);
 			//}
 				
 		}
@@ -350,7 +350,7 @@ public class PlayerActor implements IUpdateHandler{
 	@Override
 	public void onUpdate(float pSecondsElapsed) {
 		// TODO Auto-generated method stub
-		applyEngineForces();
+		//applyEngineForces();
 		
 		//if(frontWheelBody.getAngularVelocity()>1){
 		//	particleSystem.setParticlesSpawnEnabled(true);

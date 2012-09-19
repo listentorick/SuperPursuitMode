@@ -23,15 +23,18 @@ import com.badlogic.gdx.math.Vector2;
 public class Terrain extends Entity {
 
 	private Engine engine;
-	private int numKeyPoints = 80;
+	//private int numKeyPoints = 80;
+	private int numPoints = 80;
 	private ArrayList<Vector2> keyPoints;
+	private ArrayList<Vector2> allPoints; //these are used to draw the line
+
 	private float hillSegmentWidth = 10;
-	protected float[] bufferData; //in this we store the vertices and the color data
+	//protected float[] bufferData; //in this we store the vertices and the color data
 	private Random r;
 	private  int rangeDX = 80;
     private int rangeDY = 40;
-    private float minDX = 600;
-    private float minDY = 100;
+    private float minDX = 800;
+    private float minDY = 50;
 	private Path path;
 	private PhysicsWorld physicsWorld;
 	//private PhysicsFactory physicsFactory;
@@ -46,8 +49,12 @@ public class Terrain extends Entity {
 		//physicsFactory = new PhysicsFactory();
 		this.terrainBody = createTerrainBody();
 		
-		this.keyPoints = this.generateStartTerrain(new ArrayList<Vector2>());
-		this.bufferData = populateBuffer(keyPoints);
+		this.keyPoints = new ArrayList<Vector2>();
+		this.allPoints = new ArrayList<Vector2>();
+		
+		this.generateTerrain();
+		
+		float[] bufferData = populateBuffer(allPoints);
 		
 		this.path = new Path(0, 0, bufferData,engine.getVertexBufferObjectManager());
 		this.path.setColor(1.0f,1.0f,0.1f);
@@ -55,6 +62,7 @@ public class Terrain extends Entity {
 		
 	}
 	
+	/*
 	public ArrayList<Vector2> generateStartTerrain(ArrayList<Vector2> keyPoints){
 		Vector2 previousPoint = new Vector2(0,200);
 		keyPoints.add(previousPoint);
@@ -67,12 +75,12 @@ public class Terrain extends Entity {
 		}
 		return keyPoints;
 		
-	}
+	}*/
 	
 	public float getMinTerrainHeightInRange(float x1, float x2){
 		float minY = keyPoints.get(0).y;
 		
-		for(int i=0; i<numKeyPoints;i++){
+		for(int i=0; i<keyPoints.size();i++){
 			if(keyPoints.get(i).y<minY) {;
 				minY = keyPoints.get(i).y;
 			}
@@ -84,7 +92,7 @@ public class Terrain extends Entity {
 	public float getMaxTerrainHeightInRange(float x1, float x2){
 		float maxY = 0;
 		
-		for(int i=0; i<numKeyPoints;i++){
+		for(int i=0; i<keyPoints.size();i++){
 			if(keyPoints.get(i).y>maxY) {;
 				maxY = keyPoints.get(i).y;
 			}
@@ -95,7 +103,7 @@ public class Terrain extends Entity {
 	}
 	
 	public float getTerrainHeightAtX(float x){
-		for(int i=0; i<numKeyPoints-2;i++){
+		for(int i=0; i<keyPoints.size()-2;i++){
 			float x1 = keyPoints.get(i).x;
 			float x2 = keyPoints.get(i+1).x;
 			if(x>x1 && x<x2){
@@ -105,9 +113,81 @@ public class Terrain extends Entity {
 		return 0;
 	}
 	
+	
+	public Vector2 calculatePointPosition(float startX, float distance){
+		
+		float x1 = 0;
+		float x2 = 0;
+		
+		//lets find the 2 keypoints x is between.
+		
+		Vector2 point1 = null;;
+		Vector2 point2 = null;
+		for(int i=0; i<keyPoints.size()-1;i++){
+			point1 = keyPoints.get(i);
+			point2 = keyPoints.get(i+1);
+			
+			x1 = point1.x;
+			x2 = point2.x;
+			if(startX>x1 && startX<x2){
+				break;
+			}
+		}
+		
+		
+		
+		if(point1==null) {
+			return null;
+		}
+		
+		//distance travelled from point1
+		float deltaX = startX - point1.x;
+		
+
+		
+		
+		
+		//imagine the standard cosine graph where x axis is angle.
+		
+		//we know that between 2 key-points we travel through 180 degrees 
+		float xPerAngle = (float) ((point2.x-point1.x)/Math.PI);
+		float anglePerX = (float) (Math.PI/(point2.x-point1.x));
+		//so the the angle we are at is...
+		float startAngle = anglePerX * deltaX;
+		
+		
+		
+		//Calculate the radius of our hill
+		float r = calculateRadius(point2,point1);
+		
+		//return null;
+		
+		
+		
+		//the length of the arc segment = distance.
+		//the angle travelled through
+		float deltaTheta = distance/r; //this is the equation of an arc
+		
+		if(startAngle+deltaTheta>Math.PI){
+			//we've moved to the next point
+			//distance = distance - Math.PI * r;
+			return calculatePointPosition(point2.x,(float)(distance - (Math.PI * r)));
+		} else {
+			
+			//now we can calculate the point!
+			float x = distance + (deltaTheta * xPerAngle);
+			float ymid =  calculateYOffset(point2, point1);
+			//float r = calculateRadius(point2, point1);
+			float y = (float) (ymid + r * Math.cos(startAngle + deltaTheta));
+			return new Vector2(x,y);
+		}
+		
+		//return null;
+	}
+	
 	private float[] populateBuffer(ArrayList<Vector2> keyPoints){
 		
-		int bufferSize = numKeyPoints*3;
+		int bufferSize = numPoints*3;
 		float[] bufferData = new float[bufferSize];
 		int i = 0;
 		for(Vector2 v: keyPoints){
@@ -137,46 +217,59 @@ public class Terrain extends Entity {
 		}
 	}
 	
-	private ArrayList<Vector2> generateTerrain(ArrayList<Vector2> keyPoints ){
+	private void generateTerrain(){
 
 		if(keyPoints.size()==0){
-			keyPoints.add(new Vector2(0,200));
+			Vector2 firstPoint = new Vector2(0,200);
+			keyPoints.add(firstPoint);
+			allPoints.add(firstPoint);
+		
 		}
 		
-		//grab the last point
+		//grab the last KEY point
 		Vector2 lastPoint = keyPoints.get(keyPoints.size()-1);
 		Vector2 nextPoint;
-		while(keyPoints.size()<numKeyPoints) {
+		while(allPoints.size()<numPoints) {
 			
 			
-			//we need another point
-			//lastPoint =  generateTerrainVector(lastPoint,sign);
-			nextPoint = generateTerrainVector(lastPoint,sign);
+			//we need the next KEY point
+			nextPoint = generateNextTerrainPoint(lastPoint,sign);
 			
-			keyPoints.addAll(generateSegments(lastPoint,nextPoint));
-			///sign = sign *= -1;
+			allPoints.addAll(generateSegments(lastPoint,nextPoint));
 			sign = nextSign();
+			
 			keyPoints.add(nextPoint);
+			allPoints.add(nextPoint);
+			
 			lastPoint = nextPoint;
 		}
-
-	    return keyPoints;
 	}
+	
+	protected float calculateRadius(Vector2 lastPoint, Vector2 nextPoint){
+		return (lastPoint.y - nextPoint.y) / 2;
+	}
+	
+	protected float calculateYOffset(Vector2 lastPoint, Vector2 nextPoint){
+		return (lastPoint.y + nextPoint.y) / 2;
+	}
+	
+	
 	
 	protected ArrayList<Vector2> generateSegments(Vector2 lastPoint, Vector2 nextPoint){
 		ArrayList<Vector2> segments = new ArrayList<Vector2>(); 
 		int hSegments = (int) Math.floor((nextPoint.x-lastPoint.x)/hillSegmentWidth);
 		float dx = (nextPoint.x -lastPoint.x) / hSegments;
-		float da = (float) (Math.PI / hSegments);
-		float ymid = (lastPoint.y + nextPoint.y) / 2;
-		float ampl = (lastPoint.y - nextPoint.y) / 2;
+		float da = (float) (Math.PI / hSegments); //split
+		float ymid = calculateYOffset(lastPoint, nextPoint);
+		float r = calculateRadius(lastPoint, nextPoint);
 		
+		//float r = calculateRadius(lastPoint, nextPoint);
 		Vector2 newPoint;
 		Vector2 previousPoint = lastPoint;
 		for (int j = 0; j < hSegments+1; ++j) {
 			newPoint = new Vector2();
 			newPoint.x = lastPoint.x + j*dx;
-			newPoint.y = (float) (ymid + ampl * Math.cos(da*j));  //cosf(da*j);
+			newPoint.y = (float) (ymid + r * Math.cos(da*j));  //cosf(da*j);
 			segments.add(newPoint);
 			
 			createFixtureAndAddBody(previousPoint,newPoint);
@@ -186,7 +279,7 @@ public class Terrain extends Entity {
 		return segments; 
 	}
 	
-	protected Vector2 generateTerrainVector(Vector2 previousVector, float sign){
+	protected Vector2 generateNextTerrainPoint(Vector2 previousVector, float sign){
 		float x = previousVector.x + r.nextFloat()%rangeDX+minDX;
 		float y = previousVector.y + ( r.nextFloat()%rangeDY+minDY)*sign;
 		return new Vector2(x,y);
@@ -228,18 +321,17 @@ public class Terrain extends Entity {
 		int minIndex = -1;
 		
 		//offset each item in the 
-		for(Vector2 v: keyPoints){
-			//v.x+=offsetX;
-			//v.y+=offsetY;
-			
+		for(Vector2 v: allPoints){
+
+			//remove any points we dont care about from the allPoints collection.
 			if(v.x<this.engine.getCamera().getXMin()) {
-				minIndex = keyPoints.indexOf(v);
+				minIndex = allPoints.indexOf(v);
 			} 
 			
 		}
 		
 		if(minIndex!=-1) {
-			keyPoints.subList(0, minIndex).clear();
+			allPoints.subList(0, minIndex).clear();
 			
 			for(int i=0; i<=minIndex;i++){
 				//remove fixtures we no longer care about
@@ -250,9 +342,9 @@ public class Terrain extends Entity {
 				
 			}
 			
-			keyPoints = generateTerrain(keyPoints);
+			generateTerrain();
 
-			float[] vertices = populateBuffer(keyPoints);
+			float[] vertices = populateBuffer(allPoints);
 			
 			path.setBufferData(vertices);
 		}

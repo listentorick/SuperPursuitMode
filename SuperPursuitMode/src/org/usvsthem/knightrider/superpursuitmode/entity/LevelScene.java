@@ -111,6 +111,13 @@ public class LevelScene extends Scene {
 		});
 		
 		
+		Vector2 position = terrain.calculatePointPosition(100,100);
+		
+		
+		//Sprite chasisShape = new Sprite(position.x,position.y,147,55, textureRegionLibrary.get(Textures.PlayerChasis), engine.getVertexBufferObjectManager());
+		//this.attachChild(chasisShape);
+	
+		
 	}
 	
 	public void createPhysicsWorld(){
