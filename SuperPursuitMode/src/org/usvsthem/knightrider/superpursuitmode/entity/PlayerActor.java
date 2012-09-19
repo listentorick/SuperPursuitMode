@@ -43,6 +43,7 @@ import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.joints.LineJointDef;
+import com.badlogic.gdx.physics.box2d.joints.RevoluteJoint;
 import com.badlogic.gdx.physics.box2d.joints.RevoluteJointDef;
 
 public class PlayerActor implements IUpdateHandler{
@@ -75,20 +76,20 @@ public class PlayerActor implements IUpdateHandler{
 	
 	private static float REAR_WHEEL_FRICTION = 0.9f;
 	private static float REAR_WHEEL_RESTITUTION 	= 0f;
-	private static float REAR_WHEEL_DENSITY 	= 200f;//100f//50f;//25f;
+	private static float REAR_WHEEL_DENSITY 	= 2f;//1f; //100f;//100f//50f;//25f;
 	
 	private static float FRONT_WHEEL_RADIUS 	= 15f;
 	
 	private static float FRONT_WHEEL_FRICTION = 0.9f;
 	private static float FRONT_WHEEL_RESTITUTION 	= 0f;
-	private static float FRONT_WHEEL_DENSITY 	= 200f;//100f//60f;
+	private static float FRONT_WHEEL_DENSITY 	= 1f;// 100f;//100f//60f;
 
 	private static float SCANNER_RADIUS =  25f;
 	
 	private static float CHASIS_WIDTH 	= 147f;
 	private static float CHASIS_HEIGHT 	= 55f;
 	
-	private static float CHASIS_DENSITY =  200f;//5f; //25f;  
+	private static float CHASIS_DENSITY =  2f;//200f;//5f; //25f;  
 	private static float CHASIS_RESTITUTION = 0f;
 	private static float CHASIS_FRICTION = 0.2f;
 	
@@ -110,6 +111,7 @@ public class PlayerActor implements IUpdateHandler{
 	
 	private boolean pursuitMode = false;
 	
+	private RevoluteJoint rearWheelRevoluteJoint;
 	
 	public PlayerActor(float x, float y, Engine engine,  PhysicsWorld physicsWorld, LevelScene levelScene, TextureRegionLibrary textureRegionLibrary){
 		this.x = x;
@@ -140,9 +142,19 @@ public class PlayerActor implements IUpdateHandler{
 		frontWheelPhysicsConnector = new PhysicsConnector(frontWheelShape, frontWheelBody, true, true);
 		physicsWorld.registerPhysicsConnector(frontWheelPhysicsConnector);
 	
-		constructLineJoint(rearWheelBody,chasisBody,-0.05f,0.05f);
-		constructLineJoint(frontWheelBody,chasisBody,-0.05f,0.05f);
-
+		//constructLineJoint(rearWheelBody,chasisBody,-0.05f,0.05f);
+		//constructLineJoint(frontWheelBody,chasisBody,-0.05f,0.05f);
+		
+		constructLineJoint(rearWheelBody,chasisBody,0f,0.2f);
+		constructLineJoint(frontWheelBody,chasisBody,0f,0.2f);
+	
+		
+		//RevoluteJoint front = constructRevoluteJoint(rearWheelBody,chasisBody);
+		//rearWheelRevoluteJoint = constructRevoluteJoint(frontWheelBody,chasisBody);
+		
+		//front.setMotorSpeed(30f);
+		//rearWheelRevoluteJoint.setMotorSpeed(30f);
+		
 		//construct scanner
 		scannerShape = new Sprite(SCANNER_X_OFFSET,SCANNER_Y_OFFSET,SCANNER_RADIUS*2,SCANNER_RADIUS*2, textureRegionLibrary.get(Textures.PlayerScanner), engine.getVertexBufferObjectManager());
 		chasisShape.attachChild(scannerShape);
@@ -232,8 +244,11 @@ public class PlayerActor implements IUpdateHandler{
 		lineJointDef.enableMotor = true;
 		//
 		lineJointDef.enableLimit = true;
+		//lineJointDef.motorSpeed = 100f; //The spring portion of the shock absorber is modeled by creating friction using the motor variables
+		//lineJointDef.maxMotorForce = 80f;
+		
 		lineJointDef.motorSpeed = 10f; //The spring portion of the shock absorber is modeled by creating friction using the motor variables
-		lineJointDef.maxMotorForce = 200f;
+		lineJointDef.maxMotorForce = 100f;
 		
 		// jd.motorSpeed = 1.0f;
          //jd.maxMotorTorque = 10.0f;
@@ -242,11 +257,15 @@ public class PlayerActor implements IUpdateHandler{
 		return physicsWorld.createJoint(lineJointDef);
 	}
 	
-	/*
-	private Joint constructRevoluteJoint(Body pWheel, Body pChassis){
+	
+	private RevoluteJoint constructRevoluteJoint(Body pWheel, Body pChassis){
 		RevoluteJointDef  revoluteJointDef = new RevoluteJointDef();
 		revoluteJointDef.initialize(pChassis, pWheel, pWheel.getWorldCenter());
 		revoluteJointDef.collideConnected = false;
+		revoluteJointDef.maxMotorTorque = 150000;         // maximum torque
+		//revoluteJointDef.motorSpeed = 100.0f;
+		revoluteJointDef.enableMotor = true;
+		//revoluteJointDef.enableLimit = true;
 		
 		//lineJointDef.lowerTranslation = pLowerTranslation;
 		//lineJointDef.upperTranslation = pUpperTranslation;
@@ -254,8 +273,8 @@ public class PlayerActor implements IUpdateHandler{
 		//lineJointDef.enableLimit = true;
 		//lineJointDef.motorSpeed = 0;
 		//lineJointDef.maxMotorForce = 10;
-		return physicsWorld.createJoint(revoluteJointDef);
-	}*/
+		return (RevoluteJoint) physicsWorld.createJoint(revoluteJointDef);
+	}
 	
 	PointParticleEmitter pointParticleEmitter;
 	SpriteParticleSystem particleSystem;
@@ -295,19 +314,26 @@ public class PlayerActor implements IUpdateHandler{
 		//
 		//}	
 		if(chasisBody.getLinearVelocity().len()<maxSpeed){	
-			rearWheelBody.applyTorque(2400);
+			
+			rearWheelBody.applyTorque(200);
+		//	frontWheelBody.applyTorque(1200);
+			
 			//rearWheelBody.applyForce(new Vector2(2000,0), forwardForceApplicationPoint);
 		}	
 		
 		if(jump==true){
+			//rearWheelRevoluteJoint.setMotorSpeed(1000f);
+			
+			
 			jump = false;
 			
 			//if(isInContact()){ //used instead of mWheelInContact since mWheelInContact may be wrong!
 				//Can we jump
-				chasisBody.applyForce(new Vector2(0, -450000),chasisBody.getWorldCenter());
-				Vector2 raiseNose = new Vector2(chasisBody.getWorldCenter().x+CHASIS_WIDTH/3,chasisBody.getWorldCenter().y);
-				chasisBody.applyForce(new Vector2(0, -1000),raiseNose);
+				chasisBody.applyForce(new Vector2(0, -5000),chasisBody.getWorldCenter());
+				//Vector2 raiseNose = new Vector2(chasisBody.getWorldCenter().x+CHASIS_WIDTH/3,chasisBody.getWorldCenter().y);
+				//chasisBody.applyForce(new Vector2(0, -100),raiseNose);
 			//}
+				
 		}
 		
 	}

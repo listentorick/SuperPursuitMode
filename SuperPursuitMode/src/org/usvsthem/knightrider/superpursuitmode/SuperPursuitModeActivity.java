@@ -1,5 +1,7 @@
 package org.usvsthem.knightrider.superpursuitmode;
 
+import org.andengine.engine.Engine;
+import org.andengine.engine.FixedStepEngine;
 import org.andengine.engine.camera.Camera;
 import org.andengine.engine.camera.SmoothCamera;
 import org.andengine.engine.options.EngineOptions;
@@ -34,6 +36,11 @@ public class SuperPursuitModeActivity extends SimpleBaseGameActivity  {
 
 		  Camera mCamera = new SmoothCamera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT,1000,1000,1000);
 		  return new EngineOptions(true, ScreenOrientation.LANDSCAPE_SENSOR,new RatioResolutionPolicy(CAMERA_WIDTH, CAMERA_HEIGHT), mCamera);
+	}
+	
+	@Override
+	public Engine onCreateEngine(final EngineOptions pEngineOptions) {
+		return new FixedStepEngine(pEngineOptions,60);
 	}
 	
 	private void createTextureRegion(BuildableBitmapTextureAtlas textureAtlas, String path, int textureId){
