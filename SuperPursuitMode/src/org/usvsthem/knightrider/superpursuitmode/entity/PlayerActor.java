@@ -1,10 +1,13 @@
 package org.usvsthem.knightrider.superpursuitmode.entity;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.andengine.audio.sound.SoundManager;
 import org.andengine.engine.Engine;
 import org.andengine.engine.handler.IUpdateHandler;
+import org.andengine.entity.Entity;
 import org.andengine.entity.IEntity;
 import org.andengine.entity.modifier.LoopEntityModifier;
 import org.andengine.entity.modifier.ScaleModifier;
@@ -28,6 +31,7 @@ import org.andengine.extension.physics.box2d.PhysicsWorld;
 import org.andengine.extension.physics.box2d.util.constants.PhysicsConstants;
 import org.andengine.opengl.font.FontLibrary;
 import org.andengine.opengl.texture.region.TextureRegionLibrary;
+import org.andengine.util.math.MathUtils;
 import org.usvsthem.knightrider.superpursuitmode.Constants;
 import org.usvsthem.knightrider.superpursuitmode.Textures;
 
@@ -38,6 +42,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.CircleShape;
+import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.Joint;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
@@ -54,16 +59,27 @@ public class PlayerActor implements IUpdateHandler{
 	
 	private Body heroBody;
 	private IAreaShape heroShape;
+	private Sprite scannerShape;
 
 	private float x;
 	private float y;
 	private LevelScene levelScene;
 	private TextureRegionLibrary textureRegionLibrary;
 		
-	private static float HERO_RADIUS = 16f;
+	private static float HERO_RADIUS = 32f;
 	private static float HERO_DENSITY = 1.0f;
 	private static float HERO_RESTITUTION = 0.0f;
-	private static float HERO_FRICTION = 0.5f;
+	private static float HERO_FRICTION = 0.0f;
+	
+	private static float SCANNER_X_OFFSET = 50f;
+	private static float SCANNER_Y_OFFSET = 7f;
+	private static float SCANNER_RADIUS = 12;
+	
+	private static float FRONT_WHEEL_X_OFFSET = 50f;
+	private static float FRONT_WHEEL_Y_OFFSET = 7f;
+	private static float FRONT_WHEEL_RADIUS = 12;
+
+							
 	
 	private PhysicsConnector heroPhysicsConnector;
 	
@@ -80,11 +96,27 @@ public class PlayerActor implements IUpdateHandler{
 		
 		heroBody = this.constructHero();
 		
-		heroShape = new Sprite(0,0,HERO_RADIUS * 2,HERO_RADIUS * 2, textureRegionLibrary.get(Textures.PlayerChasis), engine.getVertexBufferObjectManager());
+		heroShape = new Sprite(0,0,64,22, textureRegionLibrary.get(Textures.PlayerChasis), engine.getVertexBufferObjectManager());
 		levelScene.attachChild(heroShape);
+		
+		scannerShape = new Sprite(SCANNER_X_OFFSET,SCANNER_Y_OFFSET,SCANNER_RADIUS*2,SCANNER_RADIUS*2, textureRegionLibrary.get(Textures.PlayerScanner), engine.getVertexBufferObjectManager());
+		heroShape.attachChild(scannerShape);
+		heroShape.setZIndex(-10);
+		
+		Sprite frontWheelShape = new Sprite(43,15,15,15, textureRegionLibrary.get(Textures.PlayerFrontWheel), engine.getVertexBufferObjectManager());
+		heroShape.attachChild(frontWheelShape);
+		
+		Sprite rearWheelShape = new Sprite(8,14,17,17, textureRegionLibrary.get(Textures.PlayerRearWheel), engine.getVertexBufferObjectManager());
+		heroShape.attachChild(rearWheelShape);
+		//heroShape.setZIndex(-10);
 	
-		heroPhysicsConnector = new PhysicsConnector(heroShape, heroBody, true, true);
-		physicsWorld.registerPhysicsConnector(heroPhysicsConnector);
+		
+		LoopEntityModifier scannerEntityModifier = new LoopEntityModifier( new SequenceEntityModifier(new ScaleModifier(1, 0.3f, 1f),new ScaleModifier(1, 1f, 0.3f)));
+		scannerShape.registerEntityModifier(scannerEntityModifier);
+	
+		//heroPhysicsConnector = new PhysicsConnector(heroShape, heroBody, true, false);
+	
+		//physicsWorld.registerPhysicsConnector(heroPhysicsConnector);
 
 	}
 	
@@ -105,8 +137,8 @@ public class PlayerActor implements IUpdateHandler{
 		
 		BodyDef chasisBodyDef = new BodyDef();
 		chasisBodyDef.type = BodyType.DynamicBody;
-		chasisBodyDef.linearDamping = 0.5f;
-		chasisBodyDef.angularDamping = 0.5f;
+		chasisBodyDef.linearDamping = 0.1f;
+		//chasisBodyDef.angularDamping = 0.5f;
 		chasisBodyDef.fixedRotation  = true;
 		
 		chasisBodyDef.position.x = (this.x + HERO_RADIUS)/PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT;
@@ -115,8 +147,12 @@ public class PlayerActor implements IUpdateHandler{
 		
 		CircleShape circleShape = new CircleShape();
 		circleShape.setRadius(HERO_RADIUS / PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT);
+		
+		//PolygonShape polygonShape = new PolygonShape();
+		//polygonShape.setAsBox(32, 11);
 		FixtureDef fixtureDef = PhysicsFactory.createFixtureDef(HERO_DENSITY, HERO_RESTITUTION, HERO_FRICTION);
 		fixtureDef.shape = circleShape; 
+		//fixtureDef.shape = polygonShape;
 		chasisBody.createFixture(fixtureDef);
 		
 		return chasisBody;
@@ -324,8 +360,8 @@ public class PlayerActor implements IUpdateHandler{
 		
 		    if (!awake) return;
 		 
-		    float minVelocityX = 5;
-		    float minVelocityY = -40;
+		    float minVelocityX = 2;
+		    float minVelocityY = -20;
 		    
 		    Vector2 vel = heroBody.getLinearVelocity();
 		    
@@ -345,17 +381,156 @@ public class PlayerActor implements IUpdateHandler{
 	    //heroBody.applyLinearImpulse(new Vector2(1,2), heroBody.getPosition());
 	}
 	
+	private int NUM_PREV_VELS  = 30;//35;
+	Vector2[] prevVels = new Vector2[NUM_PREV_VELS];
+	
+	double[] weightedAngle = new double[NUM_PREV_VELS];
+	
+	int _nextVel = 0;
+	
+	private double calculateWeightedAngle1() {
+		
+		Vector2 vel = heroBody.getLinearVelocity();
+		
+		Vector2 weightedVelocity = new Vector2();
+		 
+	    for(int i = 0; i < NUM_PREV_VELS; ++i) {
+	    	
+	    	if( prevVels[i]!=null){
+	    		weightedVelocity.x += prevVels[i].x;
+	    		weightedVelocity.y += prevVels[i].y;
+	    	}
+	    }
+	    
+	    weightedVelocity.x =  weightedVelocity.x/NUM_PREV_VELS;
+	    weightedVelocity.y = weightedVelocity.y/NUM_PREV_VELS;    
+	      
+	    prevVels[_nextVel++] = vel;
+	    if (_nextVel >= NUM_PREV_VELS) _nextVel = 0;
+		
+	    return  Math.toDegrees(bearing(weightedVelocity));
+	    
+	}
+	
+	private boolean isInContact(){
+		List<Contact> contacts = heroBody.getWorld().getContactList();
+		for( Contact c: contacts){
+			Body fixtureABody = c.getFixtureA().getBody();
+			Body fixtureBBody = c.getFixtureB().getBody();
+			
+			if(fixtureABody == heroBody || fixtureBBody == heroBody){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private double calculateWeightedAngle2() {
+	
+		
+		//instead of using weighted velocities
+		
+		//could look at the track
+		
+		Vector2 vel = heroBody.getLinearVelocity();
+	
+		double newAngle =  Math.toDegrees(bearing(vel)) ;
+		double average = 0;
+	
+	    for(int i = 0; i < NUM_PREV_VELS; ++i) {
+	    	average+=weightedAngle[i];
+	    }
+	    
+	    average = average/NUM_PREV_VELS;
+	    
+	    if(isInContact()) {
+	    	weightedAngle[_nextVel++] = newAngle;
+	    	if (_nextVel >= NUM_PREV_VELS) _nextVel = 0;
+	    }
+		
+	    return average;
+	}
+	
+
+	
 	@Override
 	public void onUpdate(float pSecondsElapsed) {
 		
+	//	double angle = weightedAngle/NUM_PREV_VELS;
+		
+		
+			
+		double angle = calculateWeightedAngle2();
+		//}
 		
 		if(jump==true) {
 			
-			heroBody.applyForce(new Vector2(5,-50), heroBody.getPosition());
+		//	Vector2 force =  new Vector2((float)Math.cos(angle), (float)Math.sin(angle));
+			
+		//	heroBody.applyForce(force.mul(500), heroBody.getPosition());
+			
+			heroBody.applyForce(new Vector2(40,-100), heroBody.getPosition());
 		}
 		
 		limitVelocity();
 		
+		
+		
+		//final IShape shape = this.mShape;
+		//final Body body = this.mBody;
+
+		//if(this.mUpdatePosition) {
+		
+		//this.mShapeHalfBaseWidth = pAreaShape.getWidth() * 0.5f;
+		//this.mShapeHalfBaseHeight = pAreaShape.getHeight() * 0.5f;
+		
+			final Vector2 position = heroBody.getPosition().cpy();
+			
+			//position.x += (2 * Math.cos(angle));
+			//position.y += (2 * Math.sin(angle));
+			//position.x += (2 * Math.cos(angle));
+			position.y += 0.5f;
+			//final float pixelToMeterRatio = this.mPixelToMeterRatio;
+			heroShape.setPosition(position.x * PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT - heroShape.getWidth() * 0.5f, position.y * PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT - heroShape.getHeight() * 0.5f);
+		//}
+
+		//if(this.mUpdateRotation) {
+		//	final float angle = body.getAngle();
+		//	shape.setRotation(MathUtils.radToDeg(angle));
+		//}
+		
+		
+	
+		
+		heroShape.setRotation((float) angle);
+		
+		
+		
+		//vel.
+		
+		//Vector2 y = new Vector2(0, 1);
+		
+	//	float angle = y.cross(vel);
+		
+		//Log.d("ANGLE", angle + "");
+		
+		//Vector2 toVector2 = new Vector2(-1, 0);
+
+		//vel.
+		
+	//	float ang = Vector2.Angle(fromVector2, toVector2);
+		//Vector3 cross = Vector3.Cross(fromVector2, toVector2);
+
+		//if (cross.z > 0)
+		 //   ang = 360 - ang;
+
+		//Debug.Log(ang);
+		
+		//Vector2 weightedVel = vel;
+	    //float angle = ccpToAngle(ccp(vel.x, vel.y));  
+	    //if (_awake) {  
+	     //   self.rotation = -1 * CC_RADIANS_TO_DEGREES(angle);
+	    //}
 		
 		
 		
@@ -371,6 +546,38 @@ public class PlayerActor implements IUpdateHandler{
 		
 		//pointParticleEmitter.setCenter(frontWheelShape.getX(), frontWheelShape.getY());
 		
+	}
+	
+	public double bearing(Vector2 v)
+	{
+	    // x and y args to atan2() swapped to rotate resulting angle 90 degrees
+	    // (Thus angle in respect to +Y axis instead of +X axis)
+	 //   double angle = Math.toDegrees(Math.atan2(v.x, v.y));
+
+	    // Ensure result is in interval [0, 360)
+	    // Subtract because positive degree angles go clockwise
+	  // return (360-angle)% 360;
+	   //return (360 -angle)%360 ;
+		
+		
+		double angle = Math.atan(v.y/v.x);
+		
+		if(v.y>0 && v.x > 0) {
+			Log.d("REGION", "1");
+			return angle;// + Math.PI/2;
+		} else if(v.y<0 && v.x > 0 ) {
+			Log.d("REGION", "2");
+			return angle ;//+ Math.PI/2;
+		} else if(v.y<0 && v.x < 0 ) {
+			Log.d("REGION", "3");
+			return angle + Math.PI;
+		} else {
+			Log.d("REGION", "4");
+			return angle +  Math.PI + Math.PI/2;
+		}
+		
+	   
+	   
 	}
 
 	@Override

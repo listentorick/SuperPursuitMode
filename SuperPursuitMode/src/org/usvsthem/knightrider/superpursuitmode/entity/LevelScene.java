@@ -55,7 +55,7 @@ public class LevelScene extends Scene {
 		createTerrain();
 		
 		
-		this.playerActor = createPlayer(0, 180);
+		this.playerActor = createPlayer(0, 10);
 		
 		playerActor.wake();
 		
@@ -184,8 +184,8 @@ public class LevelScene extends Scene {
 				Log.d("MaxY", String.valueOf(maxY));
 				
 				
-			//	minY-=200; //add some loverly padding
-			//	maxY+=200;
+				//minY-=100; //add some loverly padding
+				//maxY+=100;
 				
 				//lets calculate the zoom we need - based upon terrain and player
 
