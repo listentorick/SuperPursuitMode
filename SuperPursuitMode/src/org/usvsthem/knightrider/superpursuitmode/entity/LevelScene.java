@@ -103,10 +103,10 @@ public class LevelScene extends Scene {
 				
 				if(pSceneTouchEvent.isActionUp()) {
 					//playerActor.setPursuitMode(false);
-					playerActor.endJump();
+					playerActor.stopChargingTurboBoost();
 				}
 				if(pSceneTouchEvent.isActionDown()){
-					playerActor.startJump();
+					playerActor.startChargingTurboBoost();
 				}
 					
 				return false;
@@ -184,20 +184,20 @@ public class LevelScene extends Scene {
 				Log.d("MaxY", String.valueOf(maxY));
 				
 				
-				//minY-=100; //add some loverly padding
-				//maxY+=100;
+				minY-=100; //add some loverly padding
+				maxY+=100;
 				
 				//lets calculate the zoom we need - based upon terrain and player
 
 				float zoom = camera.getHeightRaw()/(maxY-minY);
 				Log.d("Zoom", String.valueOf(minY) + " " + String.valueOf(maxY) + " " + String.valueOf(zoom));
-				//if(zoom<1){
-				//	zoom = 1;
-				//}
+				if(zoom>1){
+					zoom = 1;
+				}
 				float cameraY = minY + (maxY-minY)/2.0f;
 				
 				camera.setCenter(cameraX , cameraY);
-				//camera.setZoomFactor(zoom);
+				camera.setZoomFactor(zoom);
 			}
 			
 			

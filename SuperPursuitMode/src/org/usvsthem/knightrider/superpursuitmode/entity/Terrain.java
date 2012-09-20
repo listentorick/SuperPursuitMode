@@ -100,7 +100,7 @@ public class Terrain extends Entity {
 		
 		for(int i=0; i<keyPoints.size();i++){
 			point = keyPoints.get(i);
-			if(point.x > x1  && point.x < x2){
+			if(point.x >= x1  && point.x <= x2){
 				if(keyPoints.get(i).y<minY) {;
 					minY = keyPoints.get(i).y;
 				}
@@ -117,7 +117,7 @@ public class Terrain extends Entity {
 		
 		for(int i=0; i<keyPoints.size();i++){
 			point = keyPoints.get(i);
-			if(point.x > x1  && point.x < x2){
+			if(point.x >= x1  && point.x <= x2){
 				if(keyPoints.get(i).y>maxY) {;
 					maxY = keyPoints.get(i).y;
 				}
