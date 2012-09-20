@@ -8,6 +8,7 @@ import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
 import org.andengine.entity.scene.Scene;
+import org.andengine.entity.util.FPSLogger;
 import org.andengine.opengl.texture.TextureManager;
 import org.andengine.opengl.texture.TextureOptions;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas;
@@ -78,6 +79,7 @@ public class SuperPursuitModeActivity extends SimpleBaseGameActivity  {
 
 	@Override
 	protected Scene onCreateScene() {
+		this.getEngine().registerUpdateHandler(new FPSLogger());
 		LevelScene level = new LevelScene(this.getEngine(), textureRegionLibrary);
 		return level;
 	}

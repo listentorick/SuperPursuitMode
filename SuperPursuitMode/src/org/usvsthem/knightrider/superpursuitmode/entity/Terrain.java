@@ -24,7 +24,7 @@ public class Terrain extends Entity {
 
 	private Engine engine;
 	//private int numKeyPoints = 80;
-	private int numPoints = 80;
+	private int numPoints = 240;
 	private ArrayList<Vector2> keyPoints;
 	private ArrayList<Vector2> allPoints; //these are used to draw the line
 
@@ -98,11 +98,11 @@ public class Terrain extends Entity {
 		float minY  = 1000000;
 		Vector2 point; 
 		
-		for(int i=0; i<keyPoints.size();i++){
-			point = keyPoints.get(i);
+		for(int i=0; i<allPoints.size();i++){
+			point = allPoints.get(i);
 			if(point.x >= x1  && point.x <= x2){
-				if(keyPoints.get(i).y<minY) {;
-					minY = keyPoints.get(i).y;
+				if(allPoints.get(i).y<minY) {;
+					minY = allPoints.get(i).y;
 				}
 			}
 		}
@@ -115,11 +115,11 @@ public class Terrain extends Entity {
 		float maxY = 0;
 		Vector2 point; 
 		
-		for(int i=0; i<keyPoints.size();i++){
-			point = keyPoints.get(i);
+		for(int i=0; i<allPoints.size();i++){
+			point = allPoints.get(i);
 			if(point.x >= x1  && point.x <= x2){
-				if(keyPoints.get(i).y>maxY) {;
-					maxY = keyPoints.get(i).y;
+				if(allPoints.get(i).y>maxY) {;
+					maxY = allPoints.get(i).y;
 				}
 			}
 		}

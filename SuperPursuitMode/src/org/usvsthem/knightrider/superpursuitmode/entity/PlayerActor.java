@@ -191,9 +191,16 @@ public class PlayerActor implements IUpdateHandler{
 	}
 */	
 	public void startChargingTurboBoost(){
+		
 		turboBoost = new Vector2();
-		chargingTurboBoost = true;
-		Log.d("CHARGING", "START");
+		if(!isInContact) {
+			chargingTurboBoost = false;
+			
+		}else {
+			chargingTurboBoost = true;
+			Log.d("CHARGING", "START");
+		}
+		
 	}
 	
 	public void stopChargingTurboBoost(){
@@ -207,7 +214,7 @@ public class PlayerActor implements IUpdateHandler{
 		    if (!awake) return;
 		 
 		    float minVelocityX = 2;
-		    float minVelocityY = -20;
+		    float minVelocityY = -50;
 		    
 		    Vector2 vel = heroBody.getLinearVelocity();
 		    
@@ -303,7 +310,9 @@ public class PlayerActor implements IUpdateHandler{
 	
 	private void manageTurboBoost(){
 		if(chargingTurboBoost==true) {
-			turboBoost.add(new Vector2(0,-100));
+			if(turboBoost.y>-3000){
+				turboBoost.add(new Vector2(0,-100));
+			}
 		}
 		
 		if(dischargeTurboBoost == true) {

@@ -43,9 +43,18 @@ public class LevelScene extends Scene {
 	private PlayerActor playerActor;
 	private TextureRegionLibrary textureRegionLibrary;
 	
+	private float minZoom = (1f/2f);
+	private float maxViewHeight;
+	private float HERO_X_OFFSET  = 100;
+	private float CAMERA_Y_PADDING  = 100;
+	private SmoothCamera camera;
+	
 	public LevelScene(final Engine engine, TextureRegionLibrary textureRegionLibrary){
 	
 		this.engine = engine;
+		this.camera = (SmoothCamera) engine.getCamera();
+		maxViewHeight = engine.getCamera().getHeightRaw() / minZoom;
+		
 		this.textureRegionLibrary = textureRegionLibrary;
 		
 		
@@ -61,30 +70,6 @@ public class LevelScene extends Scene {
 		
 		configureCamera();
 		
-		this.registerUpdateHandler(new IUpdateHandler() {
-			
-			@Override
-			public void reset() {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void onUpdate(float pSecondsElapsed) {
-				// TODO Auto-generated method stub
-				//
-				//terrain.setOffset(engine.getCamera().getCenterX(), engine.getCamera().getCenterY());
-				//terrain.setPosition(engine.getCamera().getXMin(), engine.getCamera().getYMin());
-			}
-		});
-		
-		//createPlayer(200,0);
-		
-		//Box2dDebugRenderer renderer = new Box2dDebugRenderer(physicsWorld, engine.getVertexBufferObjectManager());
-		//this.attachChild(renderer);
-		
-		
-		
 	}
 	
 	public void createTerrain(){
@@ -93,16 +78,12 @@ public class LevelScene extends Scene {
 		this.attachChild(terrain);
 		this.registerUpdateHandler(terrain);
 		
-		//this.scrollDetector = new SurfaceScrollDetector(this);	
-		//scrollDetector.setTriggerScrollMinimumDistance(100);
-		
 		this.setOnSceneTouchListener(new IOnSceneTouchListener() {
 			
 			@Override
 			public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
 				
 				if(pSceneTouchEvent.isActionUp()) {
-					//playerActor.setPursuitMode(false);
 					playerActor.stopChargingTurboBoost();
 				}
 				if(pSceneTouchEvent.isActionDown()){
@@ -113,14 +94,7 @@ public class LevelScene extends Scene {
 			}
 		});
 		
-		
-		//Vector2 position = terrain.calculatePointPosition(100,100);
-		
-		
-		//Sprite chasisShape = new Sprite(position.x,position.y,147,55, textureRegionLibrary.get(Textures.PlayerChasis), engine.getVertexBufferObjectManager());
-		//this.attachChild(chasisShape);
 	
-		
 	}
 	
 	
@@ -128,9 +102,7 @@ public class LevelScene extends Scene {
 	
 	public void createPhysicsWorld(){
 		this.physicsWorld = new FixedStepPhysicsWorld(60,new Vector2(0,9.8f), true);
-		//this.physicsWorld = new PhysicsWorld(new Vector2(0,9.8f), true);
-		//this.physicsWorld.setContinuousPhysics(false);
-		
+
 		this.registerUpdateHandler(new IUpdateHandler() {
 			
 			@Override
@@ -144,9 +116,6 @@ public class LevelScene extends Scene {
 				// TODO Auto-generated method stub
 
 				physicsWorld.onUpdate(pSecondsElapsed);
-				
-				
-				
 			}
 		});
 	}
@@ -164,37 +133,37 @@ public class LevelScene extends Scene {
 			@Override
 			public void onUpdate(float pSecondsElapsed) {
 				// TODO Auto-generated method stub
-				SmoothCamera camera = (SmoothCamera) engine.getCamera();
 				
-				float cameraX = playerActor.getX()+(camera.getWidth()/2 -200);
 				
-				//float y1 = terrain.getTerrainHeightAtX(cameraX-camera.getWidth()/2);
-				//float y2 = terrain.getTerrainHeightAtX(cameraX+ camera.getWidth()/2);
 				
-				float minY = terrain.getMinTerrainHeightInRange(camera.getXMin(), camera.getXMax());
+				//SmoothCamera camera = (SmoothCamera) engine.getCamera();
+
 				float maxY =  terrain.getMaxTerrainHeightInRange(camera.getXMin(), camera.getXMax());
-				float playerY = playerActor.getY();
-				
-				//remember 0,0 is at top left of the screen!
-				if(playerY<minY) {
-					minY = playerY;
-				}
-				
-				Log.d("MinY", String.valueOf(minY));
-				Log.d("MaxY", String.valueOf(maxY));
-				
-				
-				minY-=100; //add some loverly padding
-				maxY+=100;
+				float minY = playerActor.getY();
+
+				minY-=CAMERA_Y_PADDING; //add some loverly padding
+				maxY+=CAMERA_Y_PADDING;
 				
 				//lets calculate the zoom we need - based upon terrain and player
-
 				float zoom = camera.getHeightRaw()/(maxY-minY);
-				Log.d("Zoom", String.valueOf(minY) + " " + String.valueOf(maxY) + " " + String.valueOf(zoom));
-				if(zoom>1){
-					zoom = 1;
+							
+				float cameraY = 0;
+				
+				if(zoom>1f){
+					zoom = 1f;
+				} 
+				
+				if(Float.compare(zoom,minZoom)<0){
+					zoom = minZoom;
+					
+					//if we're at the max zoom anchor to the player
+					cameraY = minY + (maxViewHeight/2.0f);
+				} else {
+					cameraY = maxY - (camera.getHeight()/2.0f);
 				}
-				float cameraY = minY + (maxY-minY)/2.0f;
+				
+				float cameraX = playerActor.getX()+(camera.getWidth()/2 - (HERO_X_OFFSET / zoom));
+				
 				
 				camera.setCenter(cameraX , cameraY);
 				camera.setZoomFactor(zoom);
@@ -202,9 +171,7 @@ public class LevelScene extends Scene {
 			
 			
 		});
-		
-		//engine.getCamera().setChaseEntity(playerActor.getPrincipleEntity());
-		
+	
 	}
 	
 	public PlayerActor createPlayer(float x, float y){
