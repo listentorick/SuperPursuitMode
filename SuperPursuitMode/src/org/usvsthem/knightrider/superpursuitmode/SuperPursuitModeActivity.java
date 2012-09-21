@@ -24,6 +24,7 @@ import org.usvsthem.knightrider.superpursuitmode.entity.LevelScene;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Debug;
 
 public class SuperPursuitModeActivity extends SimpleBaseGameActivity  {
    
@@ -79,8 +80,16 @@ public class SuperPursuitModeActivity extends SimpleBaseGameActivity  {
 
 	@Override
 	protected Scene onCreateScene() {
-		this.getEngine().registerUpdateHandler(new FPSLogger());
+		//Debug.startMethodTracing();
+		//this.getEngine().registerUpdateHandler(new FPSLogger());
 		LevelScene level = new LevelScene(this.getEngine(), textureRegionLibrary);
 		return level;
+	}
+	
+	@Override
+	protected void onDestroy() {
+		// TODO Auto-generated method stub
+		//Debug.stopMethodTracing();
+		super.onDestroy();
 	}
 }

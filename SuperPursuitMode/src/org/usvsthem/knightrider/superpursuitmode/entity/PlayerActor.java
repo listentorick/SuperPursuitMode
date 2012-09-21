@@ -93,7 +93,7 @@ public class PlayerActor implements IUpdateHandler{
 	
 	private boolean chargingTurboBoost = false;
 	private boolean dischargeTurboBoost = false;
-	
+	private static float MAX_VERTICAL_TURBO_BOOST = 3000f;
 	private boolean awake;
 	
 	public PlayerActor(float x, float y, Engine engine,  PhysicsWorld physicsWorld, LevelScene levelScene, TextureRegionLibrary textureRegionLibrary){
@@ -310,7 +310,7 @@ public class PlayerActor implements IUpdateHandler{
 	
 	private void manageTurboBoost(){
 		if(chargingTurboBoost==true) {
-			if(turboBoost.y>-3000){
+			if(turboBoost.y>-MAX_VERTICAL_TURBO_BOOST){
 				turboBoost.add(new Vector2(0,-100));
 			}
 		}

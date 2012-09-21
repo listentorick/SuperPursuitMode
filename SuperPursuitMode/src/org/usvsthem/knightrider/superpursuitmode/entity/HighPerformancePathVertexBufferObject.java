@@ -24,8 +24,6 @@ public class HighPerformancePathVertexBufferObject extends HighPerformanceVertex
 		
 		final float[] bufferData = this.mBufferData;
 
-	//	updateByteBuffer(path.getVertices());
-		
 		final float packedColor = path.getColor().getABGRPackedFloat();
 		int length = bufferData.length/3;
 		
@@ -39,29 +37,14 @@ public class HighPerformancePathVertexBufferObject extends HighPerformanceVertex
 		
 	}
 
-	//this needs to be optimised so that only if the size of the buffer changes is this updated....
-//	private void updateByteBuffer(float[] bufferData){
-//		this.mBufferData = bufferData;
-//		this.mByteBuffer = BufferUtils.allocateDirectByteBuffer(bufferData.length * DataConstants.BYTES_PER_FLOAT);
-//		this.mByteBuffer.order(ByteOrder.nativeOrder());
-//		onBufferData();
-		//this.mByteBuffer.pu(bufferData);
-//	}
 	
 	@Override
 	public void onUpdateVertices(Path path) {
 		
 		float[] bufferData = this.mBufferData;
 		
-		//updateByteBuffer(path.getVertices());
-		
-		
-		//final float[] bufferData = this.mBufferData;
-		
 		float[] verticesData = path.getVertices();
-		
-		//for(int i = 0; i < path.getVertices().length; i+=2) {
-		
+				
 		int length = bufferData.length/3;
 		int xIndex = 0;
 		int yIndex = 0;

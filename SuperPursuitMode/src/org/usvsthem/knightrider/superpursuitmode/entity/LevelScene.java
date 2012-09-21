@@ -130,22 +130,37 @@ public class LevelScene extends Scene {
 				
 			}
 			
+			private int NUM_PREV_MAXY  = 15;//35;
+			double[] weightedMaxY = new double[NUM_PREV_MAXY];
+			
+			int _nextMaxY = 0;
+			
+			
 			@Override
 			public void onUpdate(float pSecondsElapsed) {
-				// TODO Auto-generated method stub
-				
-				
-				
-				//SmoothCamera camera = (SmoothCamera) engine.getCamera();
 
 				float maxY =  terrain.getMaxTerrainHeightInRange(camera.getXMin(), camera.getXMax());
 				float minY = playerActor.getY();
-
+				
 				minY-=CAMERA_Y_PADDING; //add some loverly padding
 				maxY+=CAMERA_Y_PADDING;
 				
+				//Due to the discrete nature of our terrain generation
+				//we use a weighted maxY when positioning/zooming the camera.
+				//this avoids jerky camera motion
+				float averageMaxY = 0;
+				for(int i = 0; i < NUM_PREV_MAXY; ++i) { 
+					averageMaxY+=weightedMaxY[i];
+				}
+				
+				averageMaxY = averageMaxY/NUM_PREV_MAXY;
+				      
+				weightedMaxY[_nextMaxY++] = maxY;
+				
+				if (_nextMaxY >= NUM_PREV_MAXY) _nextMaxY = 0;
+				
 				//lets calculate the zoom we need - based upon terrain and player
-				float zoom = camera.getHeightRaw()/(maxY-minY);
+				float zoom = camera.getHeightRaw()/(averageMaxY-minY);
 							
 				float cameraY = 0;
 				
@@ -159,11 +174,11 @@ public class LevelScene extends Scene {
 					//if we're at the max zoom anchor to the player
 					cameraY = minY + (maxViewHeight/2.0f);
 				} else {
-					cameraY = maxY - (camera.getHeight()/2.0f);
+					//anchor to the lowest hill.
+					cameraY = averageMaxY - (camera.getHeight()/2.0f);
 				}
 				
 				float cameraX = playerActor.getX()+(camera.getWidth()/2 - (HERO_X_OFFSET / zoom));
-				
 				
 				camera.setCenter(cameraX , cameraY);
 				camera.setZoomFactor(zoom);

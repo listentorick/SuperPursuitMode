@@ -25,7 +25,7 @@ import android.opengl.GLES20;
 public class Path extends Shape {
 
 	private IPathVertexBufferObject pathVertexBufferObject;
-	private float[] bufferData;
+	protected float[] bufferData;
 	
 	public static final int VERTEX_INDEX_X = 0;
 	public static final int VERTEX_INDEX_Y = Path.VERTEX_INDEX_X + 1;
