@@ -67,18 +67,16 @@ public class Terrain extends Entity {
 		
 		this.generateTerrain();
 		
-		float[] borderBufferData = populateBorderBuffer(borderPoints,borderPointsBuffer);
+		float[] borderBufferData = populateBuffer(borderPoints,borderPointsBuffer,numPoints);
 		
 		this.borderPath = new Path(0, 0, borderBufferData,engine.getVertexBufferObjectManager());
 		this.borderPath.setColor(1.0f,1.0f,0.1f);
 		
-		//float[] hillsBufferData = populateHillsBuffer(hillVertices,hillVerticesBuffer);
+		float[] hillsBufferData = populateBuffer(hillVertices,hillVerticesBuffer,numHillVertices);
 		
-	//	this.hills = new Mesh(0f,0f, hillsBufferData, numPoints, DrawMode.TRIANGLE_STRIP,engine.getVertexBufferObjectManager());
-		//this.hills.setColor(1.0f,0.0f,0.0f);
-		//this.attachChild(hills);
-		
-		//this.hills.getVertexBufferObject().
+		this.hills = new Mesh(0f,0f, hillsBufferData, numHillVertices, DrawMode.TRIANGLE_STRIP,engine.getVertexBufferObjectManager());
+		this.hills.setColor(1.0f,0.0f,0.0f);
+		this.attachChild(hills);
 		
 		this.attachChild(borderPath);
 		
@@ -119,90 +117,9 @@ public class Terrain extends Entity {
 		
 	}
 	
-	/*
-	public float getTerrainHeightAtX(float x){
-		for(int i=0; i<keyPoints.size()-2;i++){
-			float x1 = keyPoints.get(i).x;
-			float x2 = keyPoints.get(i+1).x;
-			if(x>x1 && x<x2){
-				return keyPoints.get(i).y;
-			}
-		}
-		return 0;
-	}*/
-	
-	/*
-	public Vector2 calculatePointPosition(float startX, float distance){
-		
-		float x1 = 0;
-		float x2 = 0;
-		
-		//lets find the 2 keypoints x is between.
-		
-		Vector2 point1 = null;;
-		Vector2 point2 = null;
-		for(int i=0; i<keyPoints.size()-1;i++){
-			point1 = keyPoints.get(i);
-			point2 = keyPoints.get(i+1);
-			
-			x1 = point1.x;
-			x2 = point2.x;
-			if(startX>x1 && startX<x2){
-				break;
-			}
-		}
-		
-		
-		
-		if(point1==null) {
-			return null;
-		}
-		
-		//distance travelled from point1
-		float deltaX = startX - point1.x;
-		
 
-		
-		
-		
-		//imagine the standard cosine graph where x axis is angle.
-		
-		//we know that between 2 key-points we travel through 180 degrees 
-		float xPerAngle = (float) ((point2.x-point1.x)/Math.PI);
-		float anglePerX = (float) (Math.PI/(point2.x-point1.x));
-		//so the the angle we are at is...
-		float startAngle = anglePerX * deltaX;
-		
-		
-		
-		//Calculate the radius of our hill
-		float r = calculateRadius(point2,point1);
-		
-		//return null;
-		
-		
-		
-		//the length of the arc segment = distance.
-		//the angle travelled through
-		float deltaTheta = distance/r; //this is the equation of an arc
-		
-		if(startAngle+deltaTheta>Math.PI){
-			//we've moved to the next point
-			//distance = distance - Math.PI * r;
-			return calculatePointPosition(point2.x,(float)(distance - (Math.PI * r)));
-		} else {
-			
-			//now we can calculate the point!
-			float x = distance + (deltaTheta * xPerAngle);
-			float ymid =  calculateYOffset(point2, point1);
-			//float r = calculateRadius(point2, point1);
-			float y = (float) (ymid + r * Math.cos(startAngle + deltaTheta));
-			return new Vector2(x,y);
-		}
-		
-		//return null;
-	}
-	*/
+	
+
 	
 	/*
 	private float[] populateHillsBuffer(ArrayList<Vector2> vertices, float[] bufferData){
@@ -238,37 +155,16 @@ public class Terrain extends Entity {
 	}*/
 	
 	
-	private float[] populateBorderBuffer(ArrayList<Vector2> points, float[] bufferData){
-		/*
-		int bufferSize = numPoints*3;
-		//float[] bufferData = new float[bufferSize];
-		int i = 0;
-		for(Vector2 v: points){
-			
-			bufferData[i] = v.x;
-			i=i+1;
-			bufferData[i]=v.y;
-			i=i+2;
-			
-			if(i>=bufferSize-1){
-				break;
-			}
-			
-		}*/
-		
-		
-		int bufferSize = numPoints;
+	private float[] populateBuffer(ArrayList<Vector2> points, float[] bufferData, int bufferSize){		
 		Vector2 v;
 		int j =0;
 		for ( int i = 0, n = bufferSize; i < n; ++i )
-		{
-			
+		{	
 		   v = points.get( i );
 		   bufferData[j] = v.x;
 		   j=j+1;
 		   bufferData[j]=v.y;
-		   j=j+2;
-			
+		   j=j+2;	
 		}
 		
 		return bufferData;
@@ -288,31 +184,35 @@ public class Terrain extends Entity {
 	
 	private void generateTerrain(){
 
-		if(keyPoints.size()==0){
-			Vector2 firstPoint = new Vector2(0,200);
-			keyPoints.add(firstPoint);
-			borderPoints.add(firstPoint);
 		
+		
+		Vector2 lastPoint;
+		
+		if(keyPoints.size()==0){
+			lastPoint = new Vector2(0,200);
+			keyPoints.add(lastPoint);
+			borderPoints.add(lastPoint);
+		
+		} else {
+			lastPoint = keyPoints.get(keyPoints.size()-1);
 		}
 		
 		//grab the last KEY point
-		Vector2 lastPoint = keyPoints.get(keyPoints.size()-1);
+		//Vector2 
 		Vector2 nextPoint;
-		while(borderPoints.size()<numPoints) {
+		while(borderPoints.size()<(numPoints+1)) {
 			
 			
 			//we need the next KEY point
 			nextPoint = generateNextTerrainPoint(lastPoint,sign);
-			
-			//allPoints.addAll(generateSegments(lastPoint,nextPoint));
-			
+
 			createTriangulatedSegment(lastPoint,nextPoint,borderPoints, hillVertices, hillTextCoords);
 			
 			
 			sign = nextSign();
 			
 			keyPoints.add(nextPoint);
-			borderPoints.add(nextPoint);
+			//borderPoints.add(nextPoint);
 			
 			lastPoint = nextPoint;
 		}
@@ -402,7 +302,7 @@ public class Terrain extends Entity {
         float ymid = (p0.y + p1.y) / 2;
         float ampl = (p0.y - p1.y) / 2;
         pt0 = p0;
-        borderVertices.add(pt0);
+       // borderVertices.add(pt0);
         for (int j=1; j<hSegments+1; j++) {
         	pt1 = new Vector2();
             pt1.x = p0.x + j*dx;
@@ -412,15 +312,15 @@ public class Terrain extends Entity {
             createFixtureAndAddBody(pt0,pt1);
             
             hillVertices.add(new Vector2(pt0.x,minY)); 
-            hillTexCoords.add(new Vector2(pt0.x/512, 1.0f));
+           // hillTexCoords.add(new Vector2(pt0.x/512, 1.0f));
             hillVertices.add(new Vector2(pt1.x,minY));
-            hillTexCoords.add(new Vector2(pt1.x/512, 1.0f));
+            //hillTexCoords.add(new Vector2(pt1.x/512, 1.0f));
            
             
             hillVertices.add(new Vector2(pt0.x,pt0.y)); 
-            hillTexCoords.add(new Vector2(pt0.x/512, 0f));
+            //hillTexCoords.add(new Vector2(pt0.x/512, 0f));
             hillVertices.add(new Vector2(pt1.x,pt1.y)); 
-            hillTexCoords.add(new Vector2(pt1.x/512, 0f));
+            //hillTexCoords.add(new Vector2(pt1.x/512, 0f));
             
             pt0 = pt1;
         }
@@ -440,57 +340,60 @@ public class Terrain extends Entity {
 		
 		
 		//offset each item in the 
+		
+		//avoid iterator!!
 		for(Vector2 v: borderPoints){
 
 			//remove any points we dont care about from the allPoints collection.
 			if(v.x<minX) {
 				minIndex = borderPoints.indexOf(v);
+				 
 			} else {
 				break;
 			}
 			
 		}
 
-		/*
+		 
+		//avoid iterator!!
+		
 		int counter = 0;
-		for(Vector2 v: hillVertices){
-			counter++;
-			if(counter % 4 ==0) {
-				if(v.x<minX){
-					minHillIndex = counter -1;
-				} else {
-					break;
-				}
+		int numBoxes = hillVertices.size()/4;
+		for(int i = 0; i<numBoxes; i++){
+			counter = (4 * i) + 3;
+			
+			if(hillVertices.get(counter).x<minX){
+				minHillIndex = counter;
+			} else {
+				break;
 			}
-		}*/
-		
-		
-		//Log.d("HILL", hillVertices.size() + "");
-		
-		
-		
+			
+		}
+
 		if(minIndex!=-1) {
 			borderPoints.subList(0, minIndex).clear();
 			
-			int i = 0;
-			//fixtures = this.terrainBody.getFixtureList();
-			//if(fixtures.size()>0) {
-			//	while(i<minIndex){
-			//		this.terrainBody.destroyFixture(fixtures.get(0));
-			//		i++;
-			//	}
-			//}
+			if(minHillIndex!=-1) {
+				hillVertices.subList(0, minHillIndex+1).clear();
+			}
 			
+
 			generateTerrain();
-		 
-			populateBorderBuffer(borderPoints, borderPointsBuffer);
-			//populateHillsBuffer(hillVertices, hillVerticesBuffer);
 			
+			if(minHillIndex!=-1) {
+				
+				populateBuffer(hillVertices, hillVerticesBuffer, numHillVertices);
+			
+				float[] hillBufferData = hills.getVertexBufferObject().getBufferData();
+				System.arraycopy(hillVerticesBuffer, 0, hillBufferData, 0, hillBufferData.length);
+				hills.getVertexBufferObject().setDirtyOnHardware();
+				
+			}
+		 
+			populateBuffer(borderPoints, borderPointsBuffer, numPoints);
+				
 			borderPath.setBufferData(borderPointsBuffer);
-			//float[] hillBufferData = hills.getVertexBufferObject().getBufferData();
-			//System.arraycopy(hillBuffer, 0, hillBufferData, 0, hillBufferData.length);
-			//hills.getVertexBufferObject().setDirtyOnHardware();
-			//hills.
+
 		}
 	
 		super.onManagedUpdate(pSecondsElapsed);		 		   
