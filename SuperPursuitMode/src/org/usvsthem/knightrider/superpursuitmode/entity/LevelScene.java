@@ -83,11 +83,25 @@ public class LevelScene extends Scene {
 			@Override
 			public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
 				
-				if(pSceneTouchEvent.isActionUp()) {
-					playerActor.stopChargingTurboBoost();
+				//turbo boost on the rhs 
+				if((pSceneTouchEvent.getX()- camera.getXMin())>400){
+				
+					if(pSceneTouchEvent.isActionUp()) {
+						playerActor.stopChargingTurboBoost();
+					}
+					if(pSceneTouchEvent.isActionDown()){
+						playerActor.startChargingTurboBoost();
+					}
 				}
-				if(pSceneTouchEvent.isActionDown()){
-					playerActor.startChargingTurboBoost();
+				
+				if((pSceneTouchEvent.getX()- camera.getXMin())<400){
+					
+					if(pSceneTouchEvent.isActionUp()) {
+						playerActor.stopAccelerating();
+					}
+					if(pSceneTouchEvent.isActionDown()){
+						playerActor.startAccelerating();
+					}
 				}
 					
 				return false;

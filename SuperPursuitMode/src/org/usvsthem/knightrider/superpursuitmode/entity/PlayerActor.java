@@ -190,6 +190,25 @@ public class PlayerActor implements IUpdateHandler{
 			
 	}
 */	
+	
+	private boolean isAccelerating = false;
+	public void startAccelerating(){
+		isAccelerating = true;
+	}
+	
+	public void stopAccelerating(){
+		isAccelerating = false;
+	}
+	
+	public void manageAcceleration() {
+		
+		if(isAccelerating && isInContact){
+		
+			//should be a torque?
+			heroBody.applyForce(new Vector2(20,0), heroBody.getPosition());
+		}
+	}
+	
 	public void startChargingTurboBoost(){
 		
 		turboBoost = new Vector2();
@@ -308,10 +327,13 @@ public class PlayerActor implements IUpdateHandler{
 	private Vector2 turboBoost;
 	
 	
+	
+	
+	
 	private void manageTurboBoost(){
 		if(chargingTurboBoost==true) {
 			if(turboBoost.y>-MAX_VERTICAL_TURBO_BOOST){
-				turboBoost.add(new Vector2(0,-100));
+				turboBoost.add(new Vector2(5,-100));
 			}
 		}
 		
@@ -354,7 +376,7 @@ public class PlayerActor implements IUpdateHandler{
 		isInContact = isInContact();
 		
 		manageMinimumVelocity();
-		
+		manageAcceleration();
 		updateSuspension();
 		
 		
