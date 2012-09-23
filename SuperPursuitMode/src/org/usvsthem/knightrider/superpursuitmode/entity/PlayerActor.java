@@ -79,13 +79,13 @@ public class PlayerActor implements IUpdateHandler{
 	private static float SCANNER_RADIUS = 12;
 	
 	private static float FRONT_WHEEL_X_OFFSET = 42f;
-	private static float FRONT_WHEEL_Y_OFFSET = 15f;
-	private static float FRONT_WHEEL_HANGING_Y_OFFSET = 17f;
+	private static float FRONT_WHEEL_Y_OFFSET = 16f;
+	private static float FRONT_WHEEL_HANGING_Y_OFFSET = 18f;
 	
 	
 	private static float REAR_WHEEL_X_OFFSET = 7f;
-	private static float REAR_WHEEL_Y_OFFSET = 14f;
-	private static float REAR_WHEEL_HANGING_Y_OFFSET = 16f;
+	private static float REAR_WHEEL_Y_OFFSET = 15f;
+	private static float REAR_WHEEL_HANGING_Y_OFFSET = 17f;
 	
 	private static float FRONT_WHEEL_RADIUS = 12;
 
@@ -95,18 +95,20 @@ public class PlayerActor implements IUpdateHandler{
 	private boolean dischargeTurboBoost = false;
 	private static float MAX_VERTICAL_TURBO_BOOST = 3000f;
 	private boolean awake;
+	private Terrain terrain;
 	
-	public PlayerActor(float x, float y, Engine engine,  PhysicsWorld physicsWorld, LevelScene levelScene, TextureRegionLibrary textureRegionLibrary){
+	public PlayerActor(float x, float y, Engine engine,  PhysicsWorld physicsWorld, Terrain terrain, LevelScene levelScene, TextureRegionLibrary textureRegionLibrary){
 		this.x = x;
 		this.y = y;
 		this.engine = engine;
 		this.levelScene = levelScene;
 		this.physicsWorld = physicsWorld;
 		this.textureRegionLibrary = textureRegionLibrary;
+		this.terrain = terrain;
 		
 		heroBody = this.constructHero();
 		
-		heroShape = new Sprite(0,0,64,22, textureRegionLibrary.get(Textures.PlayerChasis), engine.getVertexBufferObjectManager());
+		heroShape = new Sprite(0,0,64,24, textureRegionLibrary.get(Textures.PlayerChasis), engine.getVertexBufferObjectManager());
 		levelScene.attachChild(heroShape);
 		
 		scannerShape = new Sprite(SCANNER_X_OFFSET,SCANNER_Y_OFFSET,SCANNER_RADIUS*2,SCANNER_RADIUS*2, textureRegionLibrary.get(Textures.PlayerScanner), engine.getVertexBufferObjectManager());
@@ -304,8 +306,11 @@ public class PlayerActor implements IUpdateHandler{
 		
 		//could look at the track
 		
-		Vector2 vel = heroBody.getLinearVelocity();
+		//Vector2 vel = heroBody.getLinearVelocity();
 	
+		Vector2 vel = terrain.getVectorAtX(heroShape.getX() + heroShape.getWidth()/2);
+		
+		
 		double newAngle =  Math.toDegrees(bearing(vel)) ;
 		double average = 0;
 	
@@ -347,7 +352,7 @@ public class PlayerActor implements IUpdateHandler{
 		
 		//Position and rotate kitt
 		final Vector2 position = heroBody.getPosition().cpy();
-		position.y += 0.5f;
+		position.y += 0.55f;
 		heroShape.setPosition(position.x * PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT - heroShape.getWidth() * 0.5f, position.y * PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT - heroShape.getHeight() * 0.5f);
 		double angle = calculateWeightedAngle2();
 		heroShape.setRotation((float) angle);

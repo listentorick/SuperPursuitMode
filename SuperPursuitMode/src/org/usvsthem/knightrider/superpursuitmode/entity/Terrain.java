@@ -99,6 +99,28 @@ public class Terrain extends Entity {
 		return minY;
 	}
 	
+	
+	public Vector2 getVectorAtX(float x){
+		
+		float maxY = 0;
+		Vector2 point1; 
+		Vector2 point2; 
+		Vector2 vector = null;
+		
+		for(int i=0; i<borderPoints.size()-1;i++){
+			point1 = borderPoints.get(i);
+			point2 = borderPoints.get(i+1);
+
+			if(point1.x <= x  && point2.x >= x){
+				return point2.cpy().sub(point1);
+			}
+		}
+		
+		return vector;
+		
+	}
+	
+	
 	public float getMaxTerrainHeightInRange(float x1, float x2){
 		
 		float maxY = 0;
@@ -181,6 +203,8 @@ public class Terrain extends Entity {
 			return 1;
 		}
 	}
+	
+	
 	
 	private void generateTerrain(){
 

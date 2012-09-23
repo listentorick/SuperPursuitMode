@@ -83,8 +83,10 @@ public class LevelScene extends Scene {
 			@Override
 			public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
 				
+				
+				
 				//turbo boost on the rhs 
-				if((pSceneTouchEvent.getX()- camera.getXMin())>400){
+				if((pSceneTouchEvent.getX()- camera.getXMin())>camera.getWidth()/2){
 				
 					if(pSceneTouchEvent.isActionUp()) {
 						playerActor.stopChargingTurboBoost();
@@ -94,7 +96,7 @@ public class LevelScene extends Scene {
 					}
 				}
 				
-				if((pSceneTouchEvent.getX()- camera.getXMin())<400){
+				if((pSceneTouchEvent.getX()- camera.getXMin())<camera.getWidth()/2){
 					
 					if(pSceneTouchEvent.isActionUp()) {
 						playerActor.stopAccelerating();
@@ -204,7 +206,7 @@ public class LevelScene extends Scene {
 	}
 	
 	public PlayerActor createPlayer(float x, float y){
-		PlayerActor playerActor = new PlayerActor(x, y, engine, physicsWorld, this, textureRegionLibrary);
+		PlayerActor playerActor = new PlayerActor(x, y, engine, physicsWorld, terrain ,this, textureRegionLibrary);
 		this.registerUpdateHandler(playerActor);
 		
 		
