@@ -3,40 +3,26 @@ package org.usvsthem.knightrider.superpursuitmode.entity;
 import java.util.ArrayList;
 
 import org.andengine.engine.Engine;
-import org.andengine.engine.camera.Camera;
 import org.andengine.engine.camera.SmoothCamera;
 import org.andengine.engine.handler.IUpdateHandler;
+import org.andengine.engine.handler.timer.ITimerCallback;
+import org.andengine.engine.handler.timer.TimerHandler;
 import org.andengine.entity.scene.IOnSceneTouchListener;
 import org.andengine.entity.scene.Scene;
-import org.andengine.entity.scene.background.Background;
 import org.andengine.entity.scene.background.SpriteBackground;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.extension.physics.box2d.FixedStepPhysicsWorld;
-import org.andengine.extension.physics.box2d.PhysicsConnector;
-import org.andengine.extension.physics.box2d.PhysicsFactory;
 import org.andengine.extension.physics.box2d.PhysicsWorld;
-import org.andengine.extension.physics.box2d.util.constants.PhysicsConstants;
 import org.andengine.input.touch.TouchEvent;
-import org.andengine.input.touch.detector.ScrollDetector;
-import org.andengine.input.touch.detector.ScrollDetector.IScrollDetectorListener;
-import org.andengine.input.touch.detector.SurfaceScrollDetector;
 import org.andengine.opengl.texture.region.TextureRegionLibrary;
-import org.andengine.util.adt.pool.GenericPool;
-import org.andengine.util.adt.pool.MultiPool;
 import org.usvsthem.knightrider.superpursuitmode.DesertFurnitureFactory;
+import org.usvsthem.knightrider.superpursuitmode.EnemyFactory;
 import org.usvsthem.knightrider.superpursuitmode.Textures;
 import org.usvsthem.knightrider.superpursuitmode.Theme;
-import org.usvsthem.knightrider.superpursuitmode.util.Box2dDebugRenderer;
-
 import android.hardware.SensorManager;
 import android.util.Log;
 
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.BodyDef;
-import com.badlogic.gdx.physics.box2d.FixtureDef;
-import com.badlogic.gdx.physics.box2d.PolygonShape;
-import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 
 public class LevelScene extends Scene {
 	
@@ -57,15 +43,12 @@ public class LevelScene extends Scene {
 	private SmoothCamera camera;
 	
 	private FurnitureMultiPool furniturePool;
-	//private FurniturePool desertFurniturePool;
-	
 	private int NUM_FURNITURE = 10;
 	
 	private ArrayList<Sprite> furnitureInScene;
-	
 	private Theme theme;
+	private EnemyPool enemyPool; 
 
-	
 	public LevelScene(final Engine engine, TextureRegionLibrary textureRegionLibrary){
 	
 		this.engine = engine;
@@ -73,7 +56,6 @@ public class LevelScene extends Scene {
 		maxViewHeight = engine.getCamera().getHeightRaw() / minZoom;
 		
 		theme = Theme.DESERT;
-		
 		
 		SpriteBackground bg = new SpriteBackground(new Sprite(0, 0,800,400, textureRegionLibrary.get(Textures.SKY),engine.getVertexBufferObjectManager()));
 		bg.setColor(1f,1f,1f);
@@ -84,17 +66,16 @@ public class LevelScene extends Scene {
 		createPhysicsWorld();
 		createTerrain();
 		
-		//this.furniturePool = new ArrayList<Sprite>();
 		this.furnitureInScene = new ArrayList<Sprite>();
-		
 		
 		this.playerActor = createPlayer(0, 10);
 		
-		Karr karr = new Karr(1600, terrain.getYAt(1600) - 100, Direction.RIGHT_TO_LEFT, engine, physicsWorld, terrain, this, textureRegionLibrary);
-		this.registerUpdateHandler(karr);
+	//	Karr karr = new Karr(1600, terrain.getYAt(1600) - 100, Direction.RIGHT_TO_LEFT, engine, physicsWorld, terrain, this, textureRegionLibrary);
+		//this.registerUpdateHandler(karr);
 		playerActor.wake();
 		
 		configureFurniture();
+		configureEnemies();
 		configureCamera();
 		
 	}
@@ -179,6 +160,62 @@ public class LevelScene extends Scene {
 		}
 	}
 	
+	private ArrayList<TerrainAlignedActor> enemies = new ArrayList<TerrainAlignedActor>();
+	
+	private void configureEnemies(){
+		
+		
+		enemyPool = new EnemyPool(new EnemyFactory(engine,this, physicsWorld,terrain,textureRegionLibrary));
+		enemyPool.batchAllocatePoolItems(1);
+		
+		
+		this.registerUpdateHandler(new TimerHandler(10,true, new ITimerCallback() {
+			
+			@Override
+			public void onTimePassed(TimerHandler pTimerHandler) {
+				// TODO Auto-generated method stub
+				
+				Log.d("ENEMY", "Adding enemy");
+				if(enemyPool.getAvailableItemCount()>0) {
+					TerrainAlignedActor actor = enemyPool.obtainPoolItem();
+					float x = camera.getXMax();
+					float y = terrain.getYAt(x);
+					actor.setPosition(x, y);
+					
+					Log.d("ENEMY", "positioning enemy");
+					registerUpdateHandler(actor);
+					enemies.add(actor);
+				}
+			}
+		}));
+		
+		this.registerUpdateHandler(new IUpdateHandler() {
+			
+			@Override
+			public void reset() {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onUpdate(float pSecondsElapsed) {
+				int numEnemies = enemies.size();
+				TerrainAlignedActor enemy;
+				for(int i=0; i<numEnemies;i++){
+					enemy = enemies.get(i);
+					if(enemy.getX() < camera.getXMin()){
+						enemyPool.recyclePoolItem(enemy);
+						unregisterUpdateHandler(enemy);
+						enemies.remove(i);
+						break;
+					}
+				}
+
+			}
+		});
+		
+	}
+
 	/*
 	 * Adds (positions) a furniture item from the pool to the scene
 	 */
@@ -301,31 +338,5 @@ public class LevelScene extends Scene {
 	public void createTestBall(){
 		
 	}
-	 
-	/*
-	@Override
-	public void onScrollStarted(ScrollDetector pScollDetector, int pPointerID,
-			float pDistanceX, float pDistanceY) {
-		// TODO Auto-generated method stub
-		
-		
-		
-	}
-	@Override
-	public void onScroll(ScrollDetector pScollDetector, int pPointerID,
-			float pDistanceX, float pDistanceY) {
-		// TODO Auto-generated method stub
-		terrain.setOffset(pDistanceX, pDistanceY);
-		
-	}
-	@Override
-	public void onScrollFinished(ScrollDetector pScollDetector, int pPointerID,
-			float pDistanceX, float pDistanceY) {
-		// TODO Auto-generated method stub
-		terrain.setOffset(0, 0);
-		
-	}*/
 	
-
-
 }

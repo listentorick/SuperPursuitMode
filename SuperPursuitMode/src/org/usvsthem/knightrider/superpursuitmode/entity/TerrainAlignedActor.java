@@ -16,6 +16,8 @@ import org.andengine.opengl.texture.region.TextureRegionLibrary;
 import org.usvsthem.knightrider.superpursuitmode.Constants;
 import org.usvsthem.knightrider.superpursuitmode.Textures;
 
+import android.R.bool;
+
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
@@ -46,8 +48,8 @@ public abstract class TerrainAlignedActor implements IUpdateHandler{
 	protected float x;
 	protected float y;
 	
-	private PointParticleEmitter dustParticleEmitter;
-	private ParticleSystem dustParticleSystem;
+//	private PointParticleEmitter dustParticleEmitter;
+//	private ParticleSystem dustParticleSystem;
 
 	public TerrainAlignedActor(float x, float y,Direction direction, Engine engine, PhysicsWorld physicsWorld, Terrain terrain,  LevelScene levelScene, TextureRegionLibrary textureRegionLibrary){
 		this.terrain = terrain;
@@ -56,9 +58,9 @@ public abstract class TerrainAlignedActor implements IUpdateHandler{
 		this.engine = engine;
 		this.direction = direction;
 		
-		this.dustParticleEmitter = constructDustParticleEmitter();
-		this.dustParticleSystem = constructDustParticleSystem(dustParticleEmitter, direction);
-		levelScene.attachChild(dustParticleSystem);	
+		//this.dustParticleEmitter = constructDustParticleEmitter();
+		//this.dustParticleSystem = constructDustParticleSystem(dustParticleEmitter, direction);
+		//levelScene.attachChild(dustParticleSystem);	
 		
 		this.shape = constructShape(textureRegionLibrary);
 		
@@ -71,6 +73,16 @@ public abstract class TerrainAlignedActor implements IUpdateHandler{
 		constructFixtureDef();
 		levelScene.attachChild(shape);
 	}
+	
+	
+	public void setPosition(float x, float y) {
+		body.setTransform(x/PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT, y/PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT, body.getAngle());
+	}
+	
+	public float getX(){
+		return shape.getX();
+	}
+	
 	
 	private BodyDef constructBody(float x, float y) {
 		BodyDef bodyDef = new BodyDef();
@@ -90,7 +102,7 @@ public abstract class TerrainAlignedActor implements IUpdateHandler{
 		return fixtureDef;
 	}
 	
-	
+	/*
 	 private ParticleSystem constructDustParticleSystem(PointParticleEmitter dustParticleEmitter, Direction direction){
 		ParticleSystem dustParticleSystem = new SpriteParticleSystem(dustParticleEmitter,50, 75, 100, textureRegionLibrary.get(Textures.DUST_PARTICLE), engine.getVertexBufferObjectManager());
 		dustParticleSystem.addParticleInitializer(new ExpireParticleInitializer(1, 3));
@@ -110,7 +122,7 @@ public abstract class TerrainAlignedActor implements IUpdateHandler{
 		PointParticleEmitter dustParticleEmitter = new PointParticleEmitter(Constants.OFF_SCREEN_X,Constants.OFF_SCREEN_Y);
 		return dustParticleEmitter;	
 	}
-	
+	*/
 	protected abstract IAreaShape constructShape(TextureRegionLibrary textureRegionLibrary);
 	
 	private double bearing(Vector2 v)
@@ -146,20 +158,13 @@ public abstract class TerrainAlignedActor implements IUpdateHandler{
 		shape.setRotation((float) angle);
 	}
 	
-	protected void positionDust(){
-		//if(isInContact) {
-			dustParticleSystem.setParticlesSpawnEnabled(true);
-			dustParticleEmitter.setCenter(shape.getX(), shape.getY()+20f);
-		//}
-		//else {
-		//	particleSystem.setParticlesSpawnEnabled(false);
-	//	}
-	}
+//	protected void positionDust(){
+//		dustParticleSystem.setParticlesSpawnEnabled(true);
+//		dustParticleEmitter.setCenter(shape.getX(), shape.getY()+20f);
+//	}
 	
 	private void manageMinimumVelocity(){
 		
-	   // if (!awake) return;
-	 
 	    float minVelocityX = -2;
 	    float minVelocityY = -50;
 	    
@@ -178,7 +183,6 @@ public abstract class TerrainAlignedActor implements IUpdateHandler{
 	    	if (vel.x > minVelocityX) {
 	 	        vel.x = minVelocityX;
 	 	    }
-
 	    }
 	    
     	
@@ -186,29 +190,30 @@ public abstract class TerrainAlignedActor implements IUpdateHandler{
  	        vel.y = minVelocityY;
  	    }
 	    
-	    //if (vel.x < minVelocityX) {
-	     //   vel.x = minVelocityX;
-	    //}
-	   
-	    
 	    body.setLinearVelocity(vel);
 	
 }
 	
 	@Override
 	public void onUpdate(float pSecondsElapsed) {
-		positionShape();
-		positionDust();
-		manageMinimumVelocity();
 		
-		
-		
+		if(!ignoreUpdate){
+			positionShape();
+			//positionDust();
+			manageMinimumVelocity();
+		}
 	}
+	
 	@Override
 	public void reset() {
-		// TODO Auto-generated method stub
-		
+		ignoreUpdate = false;
 	}
 
+	private boolean ignoreUpdate = false;
+	public void setIgnoreUpdate(boolean setIgnoreUpdate) {
+		this.ignoreUpdate = setIgnoreUpdate;
+		//dustParticleSystem.setIgnoreUpdate(ignoreUpdate);
+		shape.setIgnoreUpdate(ignoreUpdate);
+	}
 
 }
