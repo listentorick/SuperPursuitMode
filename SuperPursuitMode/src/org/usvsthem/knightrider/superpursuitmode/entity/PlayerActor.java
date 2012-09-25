@@ -123,6 +123,8 @@ public class PlayerActor implements IUpdateHandler{
 
 		LoopEntityModifier scannerEntityModifier = new LoopEntityModifier( new SequenceEntityModifier(new ScaleModifier(1, 0.3f, 1f),new ScaleModifier(1, 1f, 0.3f)));
 		scannerShape.registerEntityModifier(scannerEntityModifier);
+		
+		constructDustParticleSystem();
 	
 	}
 	
@@ -168,7 +170,7 @@ public class PlayerActor implements IUpdateHandler{
 	
 
 	
-	/*
+	
 	PointParticleEmitter pointParticleEmitter;
 	SpriteParticleSystem particleSystem;
 	
@@ -177,12 +179,13 @@ public class PlayerActor implements IUpdateHandler{
 		//appear on screen. Shit no?
 		pointParticleEmitter = new PointParticleEmitter(Constants.OFF_SCREEN_X,Constants.OFF_SCREEN_Y);
 		
-		particleSystem = new SpriteParticleSystem(pointParticleEmitter,10, 20, 100, textureRegionLibrary.get(Textures.DUST_PARTICLE), engine.getVertexBufferObjectManager());
+		particleSystem = new SpriteParticleSystem(pointParticleEmitter,100, 150, 200, textureRegionLibrary.get(Textures.DUST_PARTICLE), engine.getVertexBufferObjectManager());
 		//particleSystem.addParticleInitializer(new BlendFunctionParticleInitializer<Sprite>(GLES20.GL_SRC_ALPHA,GLES20.GL_ONE));
 		//particleSystem.setBlendFunction(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 		//particleSystem.addParticleInitializer(new  AlphaParticleInitializer(0.5f));
-		particleSystem.addParticleInitializer(new ExpireParticleInitializer(3, 6));
+		particleSystem.addParticleInitializer(new ExpireParticleInitializer(1, 3));
 		particleSystem.addParticleInitializer(new VelocityParticleInitializer(-2, 2, -40, -20));
+		//
 		//particleSystem.addParticleModifier(new ScaleParticleModifier(1f, 2f, 0, 5));
 		//particleSystem.addParticleModifier(new AlphaParticleModifier(0, 10, 0.5f, 0f));
 		particleSystem.addParticleInitializer(new RotationParticleInitializer(0.0f, 360.0f));
@@ -191,7 +194,7 @@ public class PlayerActor implements IUpdateHandler{
        
 			
 	}
-*/	
+	
 	
 	private boolean isAccelerating = false;
 	public void startAccelerating(){
@@ -389,16 +392,16 @@ public class PlayerActor implements IUpdateHandler{
 	
 		positionHero();
 		
-
-		
-		
 		//if(frontWheelBody.getAngularVelocity()>1){
-		//	particleSystem.setParticlesSpawnEnabled(true);
-		//} else {
-		//	particleSystem.setParticlesSpawnEnabled(false);
-		//}
+		if(isInContact) {
+			particleSystem.setParticlesSpawnEnabled(true);
+			pointParticleEmitter.setCenter(heroShape.getX(), heroShape.getY()+20f);
+		}
+		else {
+			particleSystem.setParticlesSpawnEnabled(false);
+		}
 		
-		//pointParticleEmitter.setCenter(frontWheelShape.getX(), frontWheelShape.getY());
+		
 		
 	}
 	

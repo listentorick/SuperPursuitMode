@@ -1,5 +1,7 @@
 package org.usvsthem.knightrider.superpursuitmode.entity;
 
+import java.util.ArrayList;
+
 import org.andengine.engine.Engine;
 import org.andengine.engine.camera.Camera;
 import org.andengine.engine.camera.SmoothCamera;
@@ -7,6 +9,7 @@ import org.andengine.engine.handler.IUpdateHandler;
 import org.andengine.entity.scene.IOnSceneTouchListener;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.Background;
+import org.andengine.entity.scene.background.SpriteBackground;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.extension.physics.box2d.FixedStepPhysicsWorld;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
@@ -18,7 +21,11 @@ import org.andengine.input.touch.detector.ScrollDetector;
 import org.andengine.input.touch.detector.ScrollDetector.IScrollDetectorListener;
 import org.andengine.input.touch.detector.SurfaceScrollDetector;
 import org.andengine.opengl.texture.region.TextureRegionLibrary;
+import org.andengine.util.adt.pool.GenericPool;
+import org.andengine.util.adt.pool.MultiPool;
+import org.usvsthem.knightrider.superpursuitmode.DesertFurnitureFactory;
 import org.usvsthem.knightrider.superpursuitmode.Textures;
+import org.usvsthem.knightrider.superpursuitmode.Theme;
 import org.usvsthem.knightrider.superpursuitmode.util.Box2dDebugRenderer;
 
 import android.hardware.SensorManager;
@@ -49,25 +56,45 @@ public class LevelScene extends Scene {
 	private float CAMERA_Y_PADDING  = 100;
 	private SmoothCamera camera;
 	
+	private FurnitureMultiPool furniturePool;
+	//private FurniturePool desertFurniturePool;
+	
+	private int NUM_FURNITURE = 10;
+	
+	private ArrayList<Sprite> furnitureInScene;
+	
+	private Theme theme;
+
+	
 	public LevelScene(final Engine engine, TextureRegionLibrary textureRegionLibrary){
 	
 		this.engine = engine;
 		this.camera = (SmoothCamera) engine.getCamera();
 		maxViewHeight = engine.getCamera().getHeightRaw() / minZoom;
 		
+		theme = Theme.DESERT;
+		
+		
+		SpriteBackground bg = new SpriteBackground(new Sprite(0, 0,800,400, textureRegionLibrary.get(Textures.SKY),engine.getVertexBufferObjectManager()));
+		bg.setColor(1f,1f,1f);
+		this.setBackground(bg);
+		
 		this.textureRegionLibrary = textureRegionLibrary;
-		
-		
-		this.setBackground(new Background(1f,1f,1f));
 		
 		createPhysicsWorld();
 		createTerrain();
 		
+		//this.furniturePool = new ArrayList<Sprite>();
+		this.furnitureInScene = new ArrayList<Sprite>();
+		
 		
 		this.playerActor = createPlayer(0, 10);
 		
+		Karr karr = new Karr(1600, terrain.getYAt(1600) - 100, Direction.RIGHT_TO_LEFT, engine, physicsWorld, terrain, this, textureRegionLibrary);
+		this.registerUpdateHandler(karr);
 		playerActor.wake();
 		
+		configureFurniture();
 		configureCamera();
 		
 	}
@@ -113,8 +140,66 @@ public class LevelScene extends Scene {
 	
 	}
 	
+	private void configureFurniture() {
+		furniturePool = new FurnitureMultiPool();
+
+		FurniturePool desertFurniturePool =  new FurniturePool(new DesertFurnitureFactory(engine, textureRegionLibrary));
+		desertFurniturePool.batchAllocatePoolItems(NUM_FURNITURE);
+		furniturePool.registerPool(Theme.DESERT.ordinal(),desertFurniturePool);
+
+		
+		this.registerUpdateHandler(new IUpdateHandler() {
+			
+			@Override
+			public void reset() {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onUpdate(float pSecondsElapsed) {
+				
+				manageFurniture();
+			}
+		});
+	}
+
+	private void manageFurniture(){
+		Sprite furniture;
+		for(int i=0; i<furnitureInScene.size();i++) {
+			furniture = furnitureInScene.get(i);
+			if((furniture.getX() + furniture.getWidth())<camera.getXMin()){
+				this.removeFurnitureFromSceneToPool(furniture);
+			}
+		}
+		
+		for(int i=0; i<furniturePool.getAvailableItemCount(theme.ordinal());i++){
+			//grabs a random item from the pool and adds it to the scene.
+			this.addFurnitureFromPoolToScene(theme);
+		}
+	}
 	
+	/*
+	 * Adds (positions) a furniture item from the pool to the scene
+	 */
+	private void addFurnitureFromPoolToScene(Theme theme) {
+		Sprite furniture = furniturePool.obtainPoolItem(theme.ordinal());
+		this.attachChild(furniture);
+		positionTerrainFuniture(furniture);
+		furnitureInScene.add(furniture);
+	}
 	
+	private void removeFurnitureFromSceneToPool(Sprite furniture) {
+		furnitureInScene.remove(furniture);
+		furniturePool.recyclePoolItem(furniture);
+		this.detachChild(furniture);
+	}
+	
+	private void positionTerrainFuniture(Sprite furniture){
+		float xPos = camera.getXMax() + ((float)Math.random()* camera.getWidth());
+		float yPos = terrain.getYAt(xPos);
+		furniture.setPosition(xPos, yPos - furniture.getHeight());
+	}
 	
 	public void createPhysicsWorld(){
 		this.physicsWorld = new FixedStepPhysicsWorld(60,new Vector2(0,9.8f), true);
@@ -130,7 +215,7 @@ public class LevelScene extends Scene {
 			@Override
 			public void onUpdate(float pSecondsElapsed) {
 				// TODO Auto-generated method stub
-
+				
 				physicsWorld.onUpdate(pSecondsElapsed);
 			}
 		});

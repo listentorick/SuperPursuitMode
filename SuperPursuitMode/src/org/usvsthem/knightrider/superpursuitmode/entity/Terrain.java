@@ -70,12 +70,15 @@ public class Terrain extends Entity {
 		float[] borderBufferData = populateBuffer(borderPoints,borderPointsBuffer,numPoints);
 		
 		this.borderPath = new Path(0, 0, borderBufferData,engine.getVertexBufferObjectManager());
-		this.borderPath.setColor(1.0f,1.0f,0.1f);
+		//this.borderPath.setColor(158f/255f,140f/255f,106f/255f);
+		this.borderPath.setColor(0f,0f,0f);
 		
 		float[] hillsBufferData = populateBuffer(hillVertices,hillVerticesBuffer,numHillVertices);
 		
 		this.hills = new Mesh(0f,0f, hillsBufferData, numHillVertices, DrawMode.TRIANGLE_STRIP,engine.getVertexBufferObjectManager());
-		this.hills.setColor(1.0f,0.0f,0.0f);
+		this.hills.setColor(0.0f,0.0f,0.0f);
+		//this.hills.setColor(158f/255f,140f/255f,106f/255f);
+		
 		this.attachChild(hills);
 		
 		this.attachChild(borderPath);
@@ -120,6 +123,24 @@ public class Terrain extends Entity {
 		
 	}
 	
+	public float getYAt(float x){
+		
+		Vector2 point1; 
+		Vector2 point2; 
+		float y = 0;
+		
+		for(int i=0; i<borderPoints.size()-1;i++){
+			point1 = borderPoints.get(i);
+			point2 = borderPoints.get(i+1);
+
+			if(point1.x <= x  && point2.x >= x){
+				return point1.y + (point2.y-point1.y)/2;
+			}
+		}
+		
+		return y;
+	}
+	
 	
 	public float getMaxTerrainHeightInRange(float x1, float x2){
 		
@@ -138,43 +159,6 @@ public class Terrain extends Entity {
 		return maxY;
 		
 	}
-	
-
-	
-
-	
-	/*
-	private float[] populateHillsBuffer(ArrayList<Vector2> vertices, float[] bufferData){
-		int bufferSize = numPoints*3;
-		//int i = 0;
-		Vector2 v;
-		
-		for ( int i = 0, n = bufferSize; i < n; ++i )
-		{
-			
-		   v = vertices.get( i );
-		   bufferData[i] = v.x;
-		   i=i+1;
-		   bufferData[i]=v.y;
-		   i=i+2;
-			
-		}
-		
-		/*
-		for(Vector2 v: vertices){
-			
-			bufferData[i] = v.x;
-			i=i+1;
-			bufferData[i]=v.y;
-			i=i+2;
-			
-			if(i>=bufferSize-1){
-				break;
-			}
-			
-		}
-		return bufferData;
-	}*/
 	
 	
 	private float[] populateBuffer(ArrayList<Vector2> points, float[] bufferData, int bufferSize){		
@@ -207,8 +191,6 @@ public class Terrain extends Entity {
 	
 	
 	private void generateTerrain(){
-
-		
 		
 		Vector2 lastPoint;
 		
@@ -249,9 +231,7 @@ public class Terrain extends Entity {
 	protected float calculateYOffset(Vector2 lastPoint, Vector2 nextPoint){
 		return (lastPoint.y + nextPoint.y) / 2;
 	}
-	
-	
-	
+		
 	protected ArrayList<Vector2> generateSegments(Vector2 lastPoint, Vector2 nextPoint){
 		ArrayList<Vector2> segments = new ArrayList<Vector2>(); 
 		int hSegments = (int) Math.floor((nextPoint.x-lastPoint.x)/hillSegmentWidth);
