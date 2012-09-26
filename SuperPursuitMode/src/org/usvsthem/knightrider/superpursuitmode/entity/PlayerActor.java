@@ -136,7 +136,7 @@ public class PlayerActor implements IUpdateHandler{
 		return this.heroShape.getY();
 	}
 	
-	public IEntity getPrincipleEntity(){
+	public IAreaShape getPrincipleShape(){
 		return heroShape;
 	}
 	
@@ -345,7 +345,7 @@ public class PlayerActor implements IUpdateHandler{
 			}
 		}
 		
-		if(dischargeTurboBoost == true) {
+		if(dischargeTurboBoost == true && turboBoost!=null) {
 			heroBody.applyForce(turboBoost, heroBody.getPosition());
 			dischargeTurboBoost = false;
 		}

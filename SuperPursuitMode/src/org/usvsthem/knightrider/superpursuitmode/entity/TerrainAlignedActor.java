@@ -83,6 +83,13 @@ public abstract class TerrainAlignedActor implements IUpdateHandler{
 		return shape.getX();
 	}
 	
+	public float getWidth(){
+		return shape.getWidth();
+	}
+	
+	public float getHeight(){
+		return shape.getHeight();
+	}
 	
 	private BodyDef constructBody(float x, float y) {
 		BodyDef bodyDef = new BodyDef();

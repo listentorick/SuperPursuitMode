@@ -35,7 +35,6 @@ public class SuperPursuitModeActivity extends SimpleBaseGameActivity  {
 	
 	@Override
 	public EngineOptions onCreateEngineOptions() {
-
 		  Camera mCamera = new SmoothCamera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT,1000,1000,1000);
 		  return new EngineOptions(true, ScreenOrientation.LANDSCAPE_SENSOR,new RatioResolutionPolicy(CAMERA_WIDTH, CAMERA_HEIGHT), mCamera);
 	}
@@ -67,15 +66,20 @@ public class SuperPursuitModeActivity extends SimpleBaseGameActivity  {
 		createTextureRegion(textureAtlas, "dust.png",Textures.DUST_PARTICLE);
 		createTextureRegion(textureAtlas, "cactus.png",Textures.CACTUS_1);
 		createTextureRegion(textureAtlas, "cactus2.png",Textures.CACTUS_2);
-	
+		createTextureRegion(textureAtlas, "cactus3.png",Textures.CACTUS_3);
+		createTextureRegion(textureAtlas, "cactus4.png",Textures.CACTUS_4);
+		
+		
 		createTextureRegion(textureAtlas, "background.png",Textures.SKY);
 		
 		createTextureRegion(textureAtlas, "karr_chasis.png",Textures.KARR_CHASIS);
 		createTextureRegion(textureAtlas, "karr_scanner.png",Textures.KARR_SCANNER);
-		
+		createTextureRegion(textureAtlas, "star_foreground.png", Textures.STAR_FOREGROUND);
+		createTextureRegion(textureAtlas, "star_middle.png", Textures.STAR_MIDDLE);
+		createTextureRegion(textureAtlas, "star_background.png", Textures.STAR_BACKGROUND);
 		
 		try {
-			textureAtlas.build(new BlackPawnTextureAtlasBuilder<IBitmapTextureAtlasSource, BitmapTextureAtlas>(0,0,0));
+			textureAtlas.build(new BlackPawnTextureAtlasBuilder<IBitmapTextureAtlasSource, BitmapTextureAtlas>(0,1,1));
 		} catch (TextureAtlasBuilderException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace(); 

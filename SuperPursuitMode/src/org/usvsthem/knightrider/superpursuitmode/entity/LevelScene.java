@@ -17,6 +17,7 @@ import org.andengine.input.touch.TouchEvent;
 import org.andengine.opengl.texture.region.TextureRegionLibrary;
 import org.usvsthem.knightrider.superpursuitmode.DesertFurnitureFactory;
 import org.usvsthem.knightrider.superpursuitmode.EnemyFactory;
+import org.usvsthem.knightrider.superpursuitmode.StarFactory;
 import org.usvsthem.knightrider.superpursuitmode.Textures;
 import org.usvsthem.knightrider.superpursuitmode.Theme;
 import android.hardware.SensorManager;
@@ -42,42 +43,50 @@ public class LevelScene extends Scene {
 	private float CAMERA_Y_PADDING  = 100;
 	private SmoothCamera camera;
 	
-	private FurnitureMultiPool furniturePool;
+	private SpriteMultiPool furniturePool;
 	private int NUM_FURNITURE = 10;
 	
 	private ArrayList<Sprite> furnitureInScene;
 	private Theme theme;
 	private EnemyPool enemyPool; 
+	private SpritePool starPool; 
+	
+	private ArrayList<Sprite> starsInScene;
+	
+	private float PLAYER_START_X  = 100;
 
 	public LevelScene(final Engine engine, TextureRegionLibrary textureRegionLibrary){
 	
 		this.engine = engine;
 		this.camera = (SmoothCamera) engine.getCamera();
-		maxViewHeight = engine.getCamera().getHeightRaw() / minZoom;
+		this.maxViewHeight = engine.getCamera().getHeightRaw() / minZoom;
+		this.textureRegionLibrary = textureRegionLibrary;
 		
 		theme = Theme.DESERT;
 		
-		SpriteBackground bg = new SpriteBackground(new Sprite(0, 0,800,400, textureRegionLibrary.get(Textures.SKY),engine.getVertexBufferObjectManager()));
-		bg.setColor(1f,1f,1f);
-		this.setBackground(bg);
-		
-		this.textureRegionLibrary = textureRegionLibrary;
-		
+		createBackground();
 		createPhysicsWorld();
 		createTerrain();
 		
-		this.furnitureInScene = new ArrayList<Sprite>();
-		
-		this.playerActor = createPlayer(0, 10);
-		
-	//	Karr karr = new Karr(1600, terrain.getYAt(1600) - 100, Direction.RIGHT_TO_LEFT, engine, physicsWorld, terrain, this, textureRegionLibrary);
-		//this.registerUpdateHandler(karr);
-		playerActor.wake();
-		
+		createPlayer();
+
 		configureFurniture();
+		configureStars();
 		configureEnemies();
 		configureCamera();
 		
+	
+	}
+	
+	public void createBackground() {
+		SpriteBackground bg = new SpriteBackground(new Sprite(0, 0,800,480, textureRegionLibrary.get(Textures.SKY),engine.getVertexBufferObjectManager()));
+		bg.setColor(1f,1f,1f);
+		this.setBackground(bg);
+	}
+	
+	public void createPlayer(){
+		this.playerActor = createPlayer(PLAYER_START_X, terrain.getYAt(PLAYER_START_X) - 100);
+		playerActor.wake();
 	}
 	
 	public void createTerrain(){
@@ -121,10 +130,78 @@ public class LevelScene extends Scene {
 	
 	}
 	
-	private void configureFurniture() {
-		furniturePool = new FurnitureMultiPool();
+	private void configureStars(){
+		starPool = new SpritePool(new StarFactory(engine, textureRegionLibrary));
+		starsInScene = new ArrayList<Sprite>();
+		
+		this.registerUpdateHandler(new IUpdateHandler() {
+			
+			@Override
+			public void reset() {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onUpdate(float pSecondsElapsed) {
+				
+				//are there any stars on the screen
+				Sprite star;
+				boolean remove = false;
+				
+				for(int i=0; i<starsInScene.size();i++) {
+					star = starsInScene.get(i);
+					
+					if(playerActor.getPrincipleShape().collidesWith(star)){
+						remove = true;
+					}
+					
+					if((star.getX() + star.getWidth())<camera.getXMin()){
+						remove = true;
+					}
+					
+					if(remove == true){
+						Log.d("STAR", "Removing star");
+						starsInScene.remove(star);
+						detachChild(star);
+						starPool.recyclePoolItem(star);
+					}
+					
+					remove = false;
+				}
+				
+			}
+		});
+		
+		this.registerUpdateHandler(new TimerHandler(10,true, new ITimerCallback() {
+			
+			@Override
+			public void onTimePassed(TimerHandler pTimerHandler) {
 
-		FurniturePool desertFurniturePool =  new FurniturePool(new DesertFurnitureFactory(engine, textureRegionLibrary));
+				if(starsInScene.size()==0) {
+					
+					Sprite actor;
+					float x = camera.getXMax();
+					
+					for(int i=0; i<10;i++){	
+						actor = starPool.obtainPoolItem();
+						starsInScene.add(actor);
+						actor.setPosition(x, terrain.getYAt(x) - (actor.getHeight()*2));
+						attachChild(actor);
+						x+=100;
+					}
+				
+				}
+			}
+		}));
+		
+		
+	}
+	
+	private void configureFurniture() {
+		furniturePool = new SpriteMultiPool();
+		furnitureInScene = new ArrayList<Sprite>();
+		SpritePool desertFurniturePool =  new SpritePool(new DesertFurnitureFactory(engine, textureRegionLibrary));
 		desertFurniturePool.batchAllocatePoolItems(NUM_FURNITURE);
 		furniturePool.registerPool(Theme.DESERT.ordinal(),desertFurniturePool);
 
@@ -179,7 +256,7 @@ public class LevelScene extends Scene {
 				if(enemyPool.getAvailableItemCount()>0) {
 					TerrainAlignedActor actor = enemyPool.obtainPoolItem();
 					float x = camera.getXMax();
-					float y = terrain.getYAt(x);
+					float y = terrain.getYAt(x) - actor.getHeight();
 					actor.setPosition(x, y);
 					
 					Log.d("ENEMY", "positioning enemy");
@@ -203,7 +280,7 @@ public class LevelScene extends Scene {
 				TerrainAlignedActor enemy;
 				for(int i=0; i<numEnemies;i++){
 					enemy = enemies.get(i);
-					if(enemy.getX() < camera.getXMin()){
+					if(enemy.getX() < camera.getXMin() - 200){
 						enemyPool.recyclePoolItem(enemy);
 						unregisterUpdateHandler(enemy);
 						enemies.remove(i);

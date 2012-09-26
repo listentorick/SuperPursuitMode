@@ -14,5 +14,11 @@ public class Textures {
 
 	 public static final int KARR_CHASIS = 8;
 	 public static final int KARR_SCANNER = 9;
+	 public static final int CACTUS_3 = 10;
+	 public static final int CACTUS_4 = 11;
+	 
+	 public static final int STAR_FOREGROUND = 12;
+	 public static final int STAR_BACKGROUND = 13;
+	 public static final int STAR_MIDDLE = 14;
 	 
 }
