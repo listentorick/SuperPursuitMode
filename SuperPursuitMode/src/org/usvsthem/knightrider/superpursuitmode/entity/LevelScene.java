@@ -180,22 +180,60 @@ public class LevelScene extends Scene {
 
 				if(starsInScene.size()==0) {
 					
-					Sprite actor;
-					float x = camera.getXMax();
 					
-					for(int i=0; i<10;i++){	
-						actor = starPool.obtainPoolItem();
-						starsInScene.add(actor);
-						actor.setPosition(x, terrain.getYAt(x) - (actor.getHeight()*2));
-						attachChild(actor);
-						x+=100;
-					}
+					
+					//starsFollowLine();
+					starsFollowLine(camera.getXMax(),Math.floor(Math.random() * 5),Math.floor(Math.random() * 10));
 				
 				}
 			}
 		}));
 		
 		
+	}
+	
+	private void starsFollowLine(float startX, double d, double e){
+		Sprite actor;
+		float x = startX;
+		float y = 0;
+		
+		for(int i=0; i<d;i++){	
+			
+			for(int j=0;j<e;j++){
+				actor = starPool.obtainPoolItem();
+				starsInScene.add(actor);
+				y = terrain.getYAt(x) - ((StarFactory.STAR_HEIGHT) * (i + 1));
+				actor.setPosition(x,y);
+				attachChild(actor);
+				x = x + StarFactory.STAR_WIDTH + STAR_ROW_PADDING; 
+			} 
+			
+			x = startX;
+		}
+	}
+	
+	
+	private float STAR_ROW_PADDING = 10;
+	
+	private void straightRowsOfStars(float startX, int numRows, int numColumns){
+		
+		Sprite actor;
+		float x = startX;
+		float y = terrain.getMinTerrainHeightInRange(startX + (numColumns * (StarFactory.STAR_WIDTH + STAR_ROW_PADDING)), startX + camera.getWidth());
+		float minHeight = y - (numColumns * (StarFactory.STAR_HEIGHT + STAR_ROW_PADDING));
+		
+		for(int i=0; i<numRows;i++){	
+			
+			for(int j=0;j<numColumns;j++){
+				actor = starPool.obtainPoolItem();
+				starsInScene.add(actor);
+				actor.setPosition(x,y);
+				attachChild(actor);
+				x = x + StarFactory.STAR_WIDTH;
+			} 
+			x = startX;
+			y = y + StarFactory.STAR_HEIGHT +STAR_ROW_PADDING;
+		}
 	}
 	
 	private void configureFurniture() {

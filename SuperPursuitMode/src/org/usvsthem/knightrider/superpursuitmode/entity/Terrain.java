@@ -140,8 +140,9 @@ public class Terrain extends Entity {
 		
 		return y;
 	}
+
 	
-	
+
 	public float getMaxTerrainHeightInRange(float x1, float x2){
 		
 		float maxY = 0;

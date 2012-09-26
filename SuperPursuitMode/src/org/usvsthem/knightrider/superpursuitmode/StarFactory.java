@@ -13,6 +13,9 @@ public class StarFactory implements ISpriteFactory{
 	private TextureRegionLibrary textureRegionLibrary;
 	private Engine engine;
 	
+	public static float STAR_HEIGHT = 68;
+	public static float STAR_WIDTH = 62;
+	
 	public StarFactory(Engine engine, TextureRegionLibrary textureRegionLibrary){
 		this.engine = engine;
 		this.textureRegionLibrary = textureRegionLibrary;
@@ -24,7 +27,7 @@ public class StarFactory implements ISpriteFactory{
 	
 		Sprite star_background = new Sprite(0,0,43,38, textureRegionLibrary.get(Textures.STAR_BACKGROUND), engine.getVertexBufferObjectManager());
 		
-		Sprite star_middle = new Sprite(-10,-15,62,68, textureRegionLibrary.get(Textures.STAR_MIDDLE), engine.getVertexBufferObjectManager());
+		Sprite star_middle = new Sprite(-10,-15,STAR_WIDTH,STAR_HEIGHT, textureRegionLibrary.get(Textures.STAR_MIDDLE), engine.getVertexBufferObjectManager());
 		
 		star_background.attachChild(star_middle);
 		
