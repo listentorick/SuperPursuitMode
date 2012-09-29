@@ -7,6 +7,8 @@ import org.andengine.entity.sprite.Sprite;
 import org.usvsthem.knightrider.superpursuitmode.entity.BasePowerUp;
 import org.usvsthem.knightrider.superpursuitmode.entity.PowerUpPool;
 
+import android.util.Log;
+
 public class TerrainFollowingPowerupLayoutStrategy implements IPowerUpLayoutStrategy {
 
 	private ILevel level;
@@ -25,6 +27,8 @@ public class TerrainFollowingPowerupLayoutStrategy implements IPowerUpLayoutStra
 	
 	private ArrayList<BasePowerUp> starsFollowLine(float startX, double d, double e){
 		
+		
+		
 		ArrayList<BasePowerUp> powerups = new ArrayList<BasePowerUp>();
 		BasePowerUp actor;
 		float x = startX;
@@ -42,6 +46,8 @@ public class TerrainFollowingPowerupLayoutStrategy implements IPowerUpLayoutStra
 			
 			x = startX;
 		}
+		
+		Log.d("POWERUP", "CREATED" + powerups.size());
 		
 		return powerups;
 		

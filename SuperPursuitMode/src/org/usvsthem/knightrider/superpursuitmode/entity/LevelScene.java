@@ -313,13 +313,13 @@ public class LevelScene extends Scene implements ILevel {
 	public void configurePowerups(){
 		
 		powerupController = new PowerUpController(this);
-		//PowerUpPool powerUpPool = new PowerUpPool(new PowerUpFactory(this)); 
-		PowerUpPool starPowerUpFactory = new PowerUpPool(new StarPowerUpFactory(this)); 
-		//TerrainFollowingPowerupLayoutStrategy randomPowerUpLayoutStrategy = new TerrainFollowingPowerupLayoutStrategy(this, powerUpPool);
-		TerrainFollowingPowerupLayoutStrategy starPowerupLayoutStrategy = new TerrainFollowingPowerupLayoutStrategy(this, starPowerUpFactory);
+		PowerUpPool powerUpPool = new PowerUpPool(new PowerUpFactory(this)); 
+		PowerUpPool starPowerUpPool = new PowerUpPool(new StarPowerUpFactory(this)); 
+		TerrainFollowingPowerupLayoutStrategy randomPowerUpLayoutStrategy = new TerrainFollowingPowerupLayoutStrategy(this, powerUpPool);
+		TerrainFollowingPowerupLayoutStrategy starPowerupLayoutStrategy = new TerrainFollowingPowerupLayoutStrategy(this, starPowerUpPool);
 		
 		
-		//powerupController.addPowerUpLayoutStrategy(randomPowerUpLayoutStrategy);
+		powerupController.addPowerUpLayoutStrategy(randomPowerUpLayoutStrategy);
 		powerupController.addPowerUpLayoutStrategy(starPowerupLayoutStrategy);
 		
 		this.registerUpdateHandler(powerupController);

@@ -1,81 +1,87 @@
 package org.usvsthem.knightrider.superpursuitmode;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.andengine.engine.handler.IUpdateHandler;
 import org.usvsthem.knightrider.superpursuitmode.entity.BasePowerUp;
 import org.usvsthem.knightrider.superpursuitmode.entity.IPowerUpListener;
 import org.usvsthem.knightrider.superpursuitmode.entity.PowerUpPool;
 
+import android.util.Log;
+
 public class PowerUpController implements IUpdateHandler{
 	
 	ArrayList<IPowerUpLayoutStrategy> powerUpLayoutStrategies;
-	ArrayList<PowerUpPool> powerUpPools;
-	private ArrayList<BasePowerUp> powerupsInScene = new ArrayList<BasePowerUp>();
-	private IPowerUpLayoutStrategy lastPowerUpLayoutStrategy;
+	private ArrayList<BasePowerUp> powerupsInScene;
 	private ILevel level;
+	private float minX;
+	public ArrayList<BasePowerUp> powersUpToRemove;
 	
+	private HashMap<BasePowerUp,  IPowerUpLayoutStrategy> powerUpToStrategyMap;
 	
 	public PowerUpController(ILevel level){
 		this.level = level;
+		minX = level.getEngine().getCamera().getXMax();
 		powerUpLayoutStrategies = new ArrayList<IPowerUpLayoutStrategy>();
-		powerUpPools = new ArrayList<PowerUpPool>();
+		powerupsInScene = new ArrayList<BasePowerUp>();
+		powerUpToStrategyMap = new HashMap<BasePowerUp, IPowerUpLayoutStrategy>();
+		powersUpToRemove = new ArrayList<BasePowerUp>();
+		powerupsInScene = new ArrayList<BasePowerUp>();
 	}
 	
 	public void addPowerUpLayoutStrategy(IPowerUpLayoutStrategy powerupLayoutStrategy){
 		powerUpLayoutStrategies.add(powerupLayoutStrategy);
 	}
 	
-	public void addPowerUpPool(PowerUpPool powerUpPool){
-		powerUpPools.add(powerUpPool);
-	}
-	
-	
-	public ArrayList<BasePowerUp> powersUpToRemove = new ArrayList<BasePowerUp>();
-	
 	@Override
 	public void onUpdate(float pSecondsElapsed) {
 		BasePowerUp powerUp;
+
+		float cameraMinX = level.getEngine().getCamera().getXMax();
 		
-		if(powerupsInScene.size()==0) {
+		if(minX<cameraMinX){
+			minX = cameraMinX;
+		}
 			
-			//pick a random strategy
+		if(powerupsInScene.size()<20) {
 			int powerUpLayoutStrategyIndex = (int) (Math.random() * powerUpLayoutStrategies.size());
-			lastPowerUpLayoutStrategy = powerUpLayoutStrategies.get(powerUpLayoutStrategyIndex);
+			IPowerUpLayoutStrategy powerUpLayoutStrategy = powerUpLayoutStrategies.get(powerUpLayoutStrategyIndex);
 		
-			powerupsInScene = lastPowerUpLayoutStrategy.createAndlayout(level.getEngine().getCamera().getXMax());
+			ArrayList<BasePowerUp> newPowerUps = powerUpLayoutStrategy.createAndlayout(minX);
+			powerupsInScene.addAll(newPowerUps);
 			
 			//attach all these powerups to the level...
-			for(int i=0; i<powerupsInScene.size();i++) {
-				powerUp = powerupsInScene.get(i);
-				level.addPowerUpToLevel(powerUp);
-			}
-		} else {
-			
-			boolean remove = false;
-			for(int i=0; i<powerupsInScene.size();i++) {
-				powerUp = powerupsInScene.get(i);
+			for(int i=0; i<newPowerUps.size();i++) {
 				
-				if(powerUp.getIsExecuted()==true || (powerUp.getX() + powerUp.getWidth())<level.getEngine().getCamera().getXMin()){	
-					powersUpToRemove.add(powerUp);
+				powerUp = newPowerUps.get(i);
+				powerUpToStrategyMap.put(powerUp, powerUpLayoutStrategy);
+				level.addPowerUpToLevel(powerUp);
+				if(minX<powerUp.getX()){
+					minX = powerUp.getX();
 				}
 			}
-			
-			for(int i=0;i<powersUpToRemove.size();i++){
-				powerUp = powersUpToRemove.get(i);
-				powerupsInScene.remove(powerUp);
-				lastPowerUpLayoutStrategy.destroy(powerUp);
-				level.removePowerUpFromLevel(powerUp);
-			}		
-			powersUpToRemove.clear();
-	
+
 		}
 		
-		
+		for(int i=0; i<powerupsInScene.size();i++) {
+			powerUp = powerupsInScene.get(i);
+			
+			if(powerUp.getIsExecuted()==true || (powerUp.getX() + powerUp.getWidth())<level.getEngine().getCamera().getXMin()){	
+				powersUpToRemove.add(powerUp);
+			}
+		}
+		Log.d("POWERUP", "REMOVED" + powersUpToRemove.size());
+		for(int i=0;i<powersUpToRemove.size();i++){
+			powerUp = powersUpToRemove.get(i);
+			powerupsInScene.remove(powerUp);
+			powerUpToStrategyMap.get(powerUp).destroy(powerUp);
+			powerUpToStrategyMap.remove(powerUp);
+
+			level.removePowerUpFromLevel(powerUp);
+		}		
+		powersUpToRemove.clear();
 	
-		
-		
-		
 	}
 
 	@Override
@@ -83,7 +89,6 @@ public class PowerUpController implements IUpdateHandler{
 		// TODO Auto-generated method stub
 		
 	}
-	
-	
+
 
 }

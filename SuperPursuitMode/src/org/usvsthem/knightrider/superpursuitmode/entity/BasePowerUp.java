@@ -45,7 +45,6 @@ public abstract class BasePowerUp extends Rectangle {
 			powerUpExecutor.executePowerup(this);
 			if(powerupListener!=null){
 				powerupListener.powerUpExecuted(this);
-				
 			}
 			isExecuted = true;
 		}
