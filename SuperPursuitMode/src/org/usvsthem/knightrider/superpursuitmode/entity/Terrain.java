@@ -105,7 +105,6 @@ public class Terrain extends Entity {
 	
 	public Vector2 getVectorAtX(float x){
 		
-		float maxY = 0;
 		Vector2 point1; 
 		Vector2 point2; 
 		Vector2 vector = null;
@@ -263,11 +262,7 @@ public class Terrain extends Entity {
 		return new Vector2(x,y);
 	}
 	
-	private float offsetX =0;
-	private float offsetY =0;
 	public void setOffset(float x, float y){
-		offsetX = x;
-		offsetY = y;
 	}
 	
 	private Body createTerrainBody(){
@@ -295,9 +290,7 @@ public class Terrain extends Entity {
 	
 	private void createTriangulatedSegment(Vector2 p0, Vector2 p1, ArrayList<Vector2> borderVertices,  ArrayList<Vector2> hillVertices,  ArrayList<Vector2> hillTexCoords){
 		
-		 float minY=1000;
-		 int numHillVertices = 0;
-		 int numBorderVertices = 0;
+		 float minY=engine.getCamera().getYMax() + 1000;
 		 Vector2 pt0, pt1;
 
         // triangle strip between p0 and p1
@@ -334,8 +327,6 @@ public class Terrain extends Entity {
 		 
 		   
 	}
-	
-	private ArrayList<Fixture> fixtures;
 	
 	protected void onManagedUpdate(final float pSecondsElapsed) {
 		

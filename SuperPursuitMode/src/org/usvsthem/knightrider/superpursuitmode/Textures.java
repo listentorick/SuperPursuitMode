@@ -20,5 +20,8 @@ public class Textures {
 	 public static final int STAR_FOREGROUND = 12;
 	 public static final int STAR_BACKGROUND = 13;
 	 public static final int STAR_MIDDLE = 14;
+	 public static final int SIGN_1 = 15;
+	 public static final int POWERUP_JUMP = 16;
+	 public static final int POWERUP_BACKGROUND_BLUE = 17;
 	 
 }

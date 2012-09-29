@@ -106,6 +106,7 @@ public class PlayerActor implements IUpdateHandler{
 		this.textureRegionLibrary = textureRegionLibrary;
 		this.terrain = terrain;
 		
+		
 		heroBody = this.constructHero();
 		
 		heroShape = new Sprite(0,0,64,24, textureRegionLibrary.get(Textures.PlayerChasis), engine.getVertexBufferObjectManager());
@@ -140,7 +141,6 @@ public class PlayerActor implements IUpdateHandler{
 		return heroShape;
 	}
 	
-
 	private Body constructHero(){
 		
 		BodyDef chasisBodyDef = new BodyDef();
@@ -156,8 +156,6 @@ public class PlayerActor implements IUpdateHandler{
 		CircleShape circleShape = new CircleShape();
 		circleShape.setRadius(HERO_RADIUS / PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT);
 		
-		//PolygonShape polygonShape = new PolygonShape();
-		//polygonShape.setAsBox(32, 11);
 		FixtureDef fixtureDef = PhysicsFactory.createFixtureDef(HERO_DENSITY, HERO_RESTITUTION, HERO_FRICTION);
 		fixtureDef.shape = circleShape; 
 		//fixtureDef.shape = polygonShape;
@@ -217,13 +215,13 @@ public class PlayerActor implements IUpdateHandler{
 	public void startChargingTurboBoost(){
 		
 		turboBoost = new Vector2();
-		if(!isInContact) {
-			chargingTurboBoost = false;
+		//if(!isInContact) {
+		//	chargingTurboBoost = false;
 			
-		}else {
+		//}else {
 			chargingTurboBoost = true;
 			Log.d("CHARGING", "START");
-		}
+	//	}
 		
 	}
 	

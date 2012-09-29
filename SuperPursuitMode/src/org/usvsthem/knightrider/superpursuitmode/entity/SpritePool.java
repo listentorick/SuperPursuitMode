@@ -2,7 +2,6 @@ package org.usvsthem.knightrider.superpursuitmode.entity;
 
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.util.adt.pool.GenericPool;
-import org.usvsthem.knightrider.superpursuitmode.ISpriteFactory;
 
 public class SpritePool extends GenericPool<Sprite> {
 

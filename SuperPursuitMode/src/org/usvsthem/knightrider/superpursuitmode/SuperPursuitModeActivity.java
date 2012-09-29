@@ -9,6 +9,7 @@ import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.util.FPSLogger;
+import org.andengine.input.touch.controller.MultiTouchController;
 import org.andengine.opengl.texture.TextureManager;
 import org.andengine.opengl.texture.TextureOptions;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas;
@@ -41,7 +42,9 @@ public class SuperPursuitModeActivity extends SimpleBaseGameActivity  {
 	
 	@Override
 	public Engine onCreateEngine(final EngineOptions pEngineOptions) {
-		return new FixedStepEngine(pEngineOptions,60);
+		Engine engine = new FixedStepEngine(pEngineOptions,60);
+		engine.setTouchController(new MultiTouchController());
+		return engine;
 	}
 	
 	private void createTextureRegion(BuildableBitmapTextureAtlas textureAtlas, String path, int textureId){
@@ -77,6 +80,11 @@ public class SuperPursuitModeActivity extends SimpleBaseGameActivity  {
 		createTextureRegion(textureAtlas, "star_foreground.png", Textures.STAR_FOREGROUND);
 		createTextureRegion(textureAtlas, "star_middle.png", Textures.STAR_MIDDLE);
 		createTextureRegion(textureAtlas, "star_background.png", Textures.STAR_BACKGROUND);
+		createTextureRegion(textureAtlas, "jump.png", Textures.POWERUP_JUMP);
+		createTextureRegion(textureAtlas, "powerup_background_blue.png", Textures.POWERUP_BACKGROUND_BLUE);
+		
+		
+		createTextureRegion(textureAtlas, "sign.png",Textures.SIGN_1);
 		
 		try {
 			textureAtlas.build(new BlackPawnTextureAtlasBuilder<IBitmapTextureAtlasSource, BitmapTextureAtlas>(0,1,1));

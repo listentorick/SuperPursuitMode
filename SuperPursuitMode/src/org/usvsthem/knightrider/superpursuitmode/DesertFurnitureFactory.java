@@ -3,6 +3,7 @@ package org.usvsthem.knightrider.superpursuitmode;
 import org.andengine.engine.Engine;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.opengl.texture.region.TextureRegionLibrary;
+import org.usvsthem.knightrider.superpursuitmode.entity.ISpriteFactory;
 
 public class DesertFurnitureFactory implements ISpriteFactory {
 
@@ -20,7 +21,7 @@ public class DesertFurnitureFactory implements ISpriteFactory {
 	}
 	
 	private Sprite createCactus2(){
-		Sprite cactus = new Sprite(0,0,12,36, textureRegionLibrary.get(Textures.CACTUS_2), engine.getVertexBufferObjectManager());
+		Sprite cactus = new Sprite(0,0,16,50, textureRegionLibrary.get(Textures.CACTUS_2), engine.getVertexBufferObjectManager());
 		return cactus;
 	}
 	
@@ -29,7 +30,11 @@ public class DesertFurnitureFactory implements ISpriteFactory {
 		return cactus;
 	}
 	
-
+	private Sprite createSign(){
+		Sprite cactus = new Sprite(0,0,20,45, textureRegionLibrary.get(Textures.SIGN_1), engine.getVertexBufferObjectManager());
+		return cactus;
+	}
+	
 	@Override
 	public Sprite create() {
 		int index = (int) Math.round(Math.random()*2);
@@ -37,8 +42,10 @@ public class DesertFurnitureFactory implements ISpriteFactory {
 			return createCactus();
 		} else if (index==1) {
 			return createCactus2();
-		} else {
+		} else if(index==2){
 			return createCactus3();
+		} else {
+			return createSign();
 		}
 	}
 

@@ -17,15 +17,20 @@ import org.andengine.input.touch.TouchEvent;
 import org.andengine.opengl.texture.region.TextureRegionLibrary;
 import org.usvsthem.knightrider.superpursuitmode.DesertFurnitureFactory;
 import org.usvsthem.knightrider.superpursuitmode.EnemyFactory;
-import org.usvsthem.knightrider.superpursuitmode.StarFactory;
+import org.usvsthem.knightrider.superpursuitmode.ILevel;
+import org.usvsthem.knightrider.superpursuitmode.PowerUpController;
+import org.usvsthem.knightrider.superpursuitmode.PowerUpFactory;
+import org.usvsthem.knightrider.superpursuitmode.StarPowerUpFactory;
+import org.usvsthem.knightrider.superpursuitmode.TerrainFollowingPowerupLayoutStrategy;
 import org.usvsthem.knightrider.superpursuitmode.Textures;
 import org.usvsthem.knightrider.superpursuitmode.Theme;
+
 import android.hardware.SensorManager;
 import android.util.Log;
 
 import com.badlogic.gdx.math.Vector2;
 
-public class LevelScene extends Scene {
+public class LevelScene extends Scene implements ILevel {
 	
 	public static int ACTOR_INDEX = 0;
 	
@@ -49,9 +54,12 @@ public class LevelScene extends Scene {
 	private ArrayList<Sprite> furnitureInScene;
 	private Theme theme;
 	private EnemyPool enemyPool; 
-	private SpritePool starPool; 
+	//private SpritePool starPool; 
+	//private PowerUpPool powerUpPool;
 	
 	private ArrayList<Sprite> starsInScene;
+	
+	private PowerUpController powerupController; 
 	
 	private float PLAYER_START_X  = 100;
 
@@ -62,6 +70,8 @@ public class LevelScene extends Scene {
 		this.maxViewHeight = engine.getCamera().getHeightRaw() / minZoom;
 		this.textureRegionLibrary = textureRegionLibrary;
 		
+	
+		
 		theme = Theme.DESERT;
 		
 		createBackground();
@@ -71,11 +81,32 @@ public class LevelScene extends Scene {
 		createPlayer();
 
 		configureFurniture();
-		configureStars();
+		//configureStars();
 		configureEnemies();
+		configurePowerups();
 		configureCamera();
 		
 	
+	}
+	
+	public Terrain getTerrain(){
+		return this.terrain;
+	}
+	
+	public PhysicsWorld getPhysicsWorld(){
+		return this.physicsWorld;
+	}
+	
+	public TextureRegionLibrary getTextureRegionLibrary(){
+		return this.textureRegionLibrary;
+	}
+	
+	public Engine getEngine(){
+		return this.engine;
+	}
+	
+	public PlayerActor getPlayerActor(){
+		return this.playerActor;
 	}
 	
 	public void createBackground() {
@@ -100,9 +131,6 @@ public class LevelScene extends Scene {
 			@Override
 			public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
 				
-				
-				
-				//turbo boost on the rhs 
 				if((pSceneTouchEvent.getX()- camera.getXMin())>camera.getWidth()/2){
 				
 					if(pSceneTouchEvent.isActionUp()) {
@@ -130,6 +158,7 @@ public class LevelScene extends Scene {
 	
 	}
 	
+	/*
 	private void configureStars(){
 		starPool = new SpritePool(new StarFactory(engine, textureRegionLibrary));
 		starsInScene = new ArrayList<Sprite>();
@@ -173,7 +202,7 @@ public class LevelScene extends Scene {
 			}
 		});
 		
-		this.registerUpdateHandler(new TimerHandler(10,true, new ITimerCallback() {
+		this.registerUpdateHandler(new TimerHandler(5,true, new ITimerCallback() {
 			
 			@Override
 			public void onTimePassed(TimerHandler pTimerHandler) {
@@ -190,8 +219,9 @@ public class LevelScene extends Scene {
 		}));
 		
 		
-	}
+	}*/
 	
+	/*
 	private void starsFollowLine(float startX, double d, double e){
 		Sprite actor;
 		float x = startX;
@@ -235,8 +265,10 @@ public class LevelScene extends Scene {
 			y = y + StarFactory.STAR_HEIGHT +STAR_ROW_PADDING;
 		}
 	}
+	*/
+	private float minFurnitureX = 0;
 	
-	private void configureFurniture() {
+	private void configureFurniture() { 
 		furniturePool = new SpriteMultiPool();
 		furnitureInScene = new ArrayList<Sprite>();
 		SpritePool desertFurniturePool =  new SpritePool(new DesertFurnitureFactory(engine, textureRegionLibrary));
@@ -276,6 +308,26 @@ public class LevelScene extends Scene {
 	}
 	
 	private ArrayList<TerrainAlignedActor> enemies = new ArrayList<TerrainAlignedActor>();
+	
+	
+	public void configurePowerups(){
+		
+		powerupController = new PowerUpController(this);
+		//PowerUpPool powerUpPool = new PowerUpPool(new PowerUpFactory(this)); 
+		PowerUpPool starPowerUpFactory = new PowerUpPool(new StarPowerUpFactory(this)); 
+		//TerrainFollowingPowerupLayoutStrategy randomPowerUpLayoutStrategy = new TerrainFollowingPowerupLayoutStrategy(this, powerUpPool);
+		TerrainFollowingPowerupLayoutStrategy starPowerupLayoutStrategy = new TerrainFollowingPowerupLayoutStrategy(this, starPowerUpFactory);
+		
+		
+		//powerupController.addPowerUpLayoutStrategy(randomPowerUpLayoutStrategy);
+		powerupController.addPowerUpLayoutStrategy(starPowerupLayoutStrategy);
+		
+		this.registerUpdateHandler(powerupController);
+		
+		//bum since some power ups should never be arranged in a particular way, the layout strategy and the poools need to be linked..
+		//perhaps IPowerUpLayoutStrategy should have create, layout, destroy methods? create 
+	
+	}
 	
 	private void configureEnemies(){
 		
@@ -333,7 +385,11 @@ public class LevelScene extends Scene {
 
 	/*
 	 * Adds (positions) a furniture item from the pool to the scene
+	 * 
+	 * 
 	 */
+	
+	
 	private void addFurnitureFromPoolToScene(Theme theme) {
 		Sprite furniture = furniturePool.obtainPoolItem(theme.ordinal());
 		this.attachChild(furniture);
@@ -348,8 +404,16 @@ public class LevelScene extends Scene {
 	}
 	
 	private void positionTerrainFuniture(Sprite furniture){
-		float xPos = camera.getXMax() + ((float)Math.random()* camera.getWidth());
+		if(minFurnitureX < camera.getXMax()) {
+			minFurnitureX = camera.getXMax();
+		}
+		minFurnitureX+= furniture.getWidth() + ((float)Math.random()*200);
+		
+		float xPos = minFurnitureX;
+		
 		float yPos = terrain.getYAt(xPos);
+		float yPos2 = terrain.getYAt(xPos+ furniture.getWidth());
+		if(yPos2> yPos) yPos = yPos2; 
 		furniture.setPosition(xPos, yPos - furniture.getHeight());
 	}
 	
@@ -452,6 +516,19 @@ public class LevelScene extends Scene {
 	
 	public void createTestBall(){
 		
+	}
+
+	@Override
+	public void addPowerUpToLevel(BasePowerUp powerup) {
+		// TODO Auto-generated method stub
+		this.attachChild(powerup);
+		
+	}
+
+	@Override
+	public void removePowerUpFromLevel(BasePowerUp powerup) {
+		// TODO Auto-generated method stub
+		this.detachChild(powerup);
 	}
 	
 }
