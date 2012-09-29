@@ -45,7 +45,7 @@ public class Terrain extends Entity {
 	//private PhysicsFactory physicsFactory;
 	private Body terrainBody;
 	private Mesh hills;
-	private float[] borderPointsBuffer;
+	//private float[] borderPointsBuffer;
 	private float[] hillVerticesBuffer;
 	
 	public Terrain(Engine engine, PhysicsWorld physicsWorld){
@@ -62,16 +62,16 @@ public class Terrain extends Entity {
 		this.hillTextCoords = new ArrayList<Vector2>();
 		this.hillVertices = new ArrayList<Vector2>();
 		
-		borderPointsBuffer = new float[numPoints * 3];
+		//borderPointsBuffer = new float[numPoints * 3];
 		hillVerticesBuffer = new float[numHillVertices * 3];
 		
 		this.generateTerrain();
 		
-		float[] borderBufferData = populateBuffer(borderPoints,borderPointsBuffer,numPoints);
+		//float[] borderBufferData = populateBuffer(borderPoints,borderPointsBuffer,numPoints);
 		
-		this.borderPath = new Path(0, 0, borderBufferData,engine.getVertexBufferObjectManager());
+		//this.borderPath = new Path(0, 0, borderBufferData,engine.getVertexBufferObjectManager());
 		//this.borderPath.setColor(158f/255f,140f/255f,106f/255f);
-		this.borderPath.setColor(0f,0f,0f);
+		//this.borderPath.setColor(0f,0f,0f);
 		
 		float[] hillsBufferData = populateBuffer(hillVertices,hillVerticesBuffer,numHillVertices);
 		
@@ -81,7 +81,7 @@ public class Terrain extends Entity {
 		
 		this.attachChild(hills);
 		
-		this.attachChild(borderPath);
+		//this.attachChild(borderPath);
 		
 	}
 		
@@ -386,9 +386,9 @@ public class Terrain extends Entity {
 				
 			}
 		 
-			populateBuffer(borderPoints, borderPointsBuffer, numPoints);
+			//populateBuffer(borderPoints, borderPointsBuffer, numPoints);
 				
-			borderPath.setBufferData(borderPointsBuffer);
+			//borderPath.setBufferData(borderPointsBuffer);
 
 		}
 	
