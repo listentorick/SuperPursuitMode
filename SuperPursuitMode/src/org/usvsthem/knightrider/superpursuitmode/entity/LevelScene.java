@@ -20,6 +20,7 @@ import org.usvsthem.knightrider.superpursuitmode.EnemyFactory;
 import org.usvsthem.knightrider.superpursuitmode.ILevel;
 import org.usvsthem.knightrider.superpursuitmode.PowerUpController;
 import org.usvsthem.knightrider.superpursuitmode.PowerUpFactory;
+import org.usvsthem.knightrider.superpursuitmode.RandomPositionPowerUpLayoutStrategy;
 import org.usvsthem.knightrider.superpursuitmode.StarPowerUpFactory;
 import org.usvsthem.knightrider.superpursuitmode.TerrainFollowingPowerupLayoutStrategy;
 import org.usvsthem.knightrider.superpursuitmode.Textures;
@@ -315,7 +316,7 @@ public class LevelScene extends Scene implements ILevel {
 		powerupController = new PowerUpController(this);
 		PowerUpPool powerUpPool = new PowerUpPool(new PowerUpFactory(this)); 
 		PowerUpPool starPowerUpPool = new PowerUpPool(new StarPowerUpFactory(this)); 
-		TerrainFollowingPowerupLayoutStrategy randomPowerUpLayoutStrategy = new TerrainFollowingPowerupLayoutStrategy(this, powerUpPool);
+		RandomPositionPowerUpLayoutStrategy randomPowerUpLayoutStrategy = new RandomPositionPowerUpLayoutStrategy(this, powerUpPool);
 		TerrainFollowingPowerupLayoutStrategy starPowerupLayoutStrategy = new TerrainFollowingPowerupLayoutStrategy(this, starPowerUpPool);
 		
 		

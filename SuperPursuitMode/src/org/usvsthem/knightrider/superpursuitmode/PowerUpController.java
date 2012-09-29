@@ -58,7 +58,7 @@ public class PowerUpController implements IUpdateHandler{
 				powerUpToStrategyMap.put(powerUp, powerUpLayoutStrategy);
 				level.addPowerUpToLevel(powerUp);
 				if(minX<powerUp.getX()){
-					minX = powerUp.getX();
+					minX = powerUp.getX() + powerUp.getWidth();
 				}
 			}
 
