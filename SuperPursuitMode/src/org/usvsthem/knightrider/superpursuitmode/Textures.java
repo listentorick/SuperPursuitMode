@@ -23,5 +23,11 @@ public class Textures {
 	 public static final int SIGN_1 = 15;
 	 public static final int POWERUP_JUMP = 16;
 	 public static final int POWERUP_BACKGROUND_BLUE = 17;
+	 public static final int POWERUP_BACKGROUND_YELLOW = 18;
+	 public static final int POWERUP_POWER = 19;
+	 
+	 public static final int POWERBAR_RED = 20;
+	 public static final int POWERBAR_GREEN = 21;
+	 public static final int POWERBAR_YELLOW = 22;
 	 
 }

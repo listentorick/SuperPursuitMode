@@ -1,41 +1,27 @@
 package org.usvsthem.knightrider.superpursuitmode.entity;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.List;
 
-import org.andengine.audio.sound.SoundManager;
 import org.andengine.engine.Engine;
 import org.andengine.engine.handler.IUpdateHandler;
-import org.andengine.entity.Entity;
-import org.andengine.entity.IEntity;
 import org.andengine.entity.modifier.LoopEntityModifier;
 import org.andengine.entity.modifier.ScaleModifier;
 import org.andengine.entity.modifier.SequenceEntityModifier;
-import org.andengine.entity.particle.ParticleSystem;
 import org.andengine.entity.particle.SpriteParticleSystem;
 import org.andengine.entity.particle.emitter.PointParticleEmitter;
-import org.andengine.entity.particle.initializer.AlphaParticleInitializer;
-import org.andengine.entity.particle.initializer.BlendFunctionParticleInitializer;
 import org.andengine.entity.particle.initializer.RotationParticleInitializer;
 import org.andengine.entity.particle.initializer.VelocityParticleInitializer;
-import org.andengine.entity.particle.modifier.AlphaParticleModifier;
 import org.andengine.entity.particle.modifier.ExpireParticleInitializer;
-import org.andengine.entity.particle.modifier.ScaleParticleModifier;
 import org.andengine.entity.shape.IAreaShape;
-import org.andengine.entity.shape.IShape;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
 import org.andengine.extension.physics.box2d.PhysicsFactory;
 import org.andengine.extension.physics.box2d.PhysicsWorld;
 import org.andengine.extension.physics.box2d.util.constants.PhysicsConstants;
-import org.andengine.opengl.font.FontLibrary;
 import org.andengine.opengl.texture.region.TextureRegionLibrary;
-import org.andengine.util.math.MathUtils;
 import org.usvsthem.knightrider.superpursuitmode.Constants;
 import org.usvsthem.knightrider.superpursuitmode.Textures;
 
-import android.opengl.GLES20;
 import android.util.Log;
 
 import com.badlogic.gdx.math.Vector2;
@@ -43,24 +29,21 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.Contact;
-import com.badlogic.gdx.physics.box2d.Joint;
-import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
-import com.badlogic.gdx.physics.box2d.joints.LineJointDef;
-import com.badlogic.gdx.physics.box2d.joints.RevoluteJoint;
-import com.badlogic.gdx.physics.box2d.joints.RevoluteJointDef;
+
 
 public class PlayerActor implements IUpdateHandler{
 	
-	
-	private Engine engine;
+	public static float MAX_ENGINE_POWER = 100f;
+	public static float MAX_TURBO_BOOST_POWER = 100f;
+	public static float TURBO_BOOST_POWER_DECREMENT = 1f;
+	public static float ENGINE_POWER_DECREMENT = 0.1f;
 	private PhysicsWorld physicsWorld;
 	
 	private Body heroBody;
 	private Sprite rearWheelShape;
 	private Sprite frontWheelShape;
-	
 	private IAreaShape heroShape;
 	private Sprite scannerShape;
 
@@ -96,6 +79,29 @@ public class PlayerActor implements IUpdateHandler{
 	private static float MAX_VERTICAL_TURBO_BOOST = 3000f;
 	private boolean awake;
 	private Terrain terrain;
+	private float enginePower = MAX_ENGINE_POWER;
+	private float turboBoostPower = MAX_TURBO_BOOST_POWER;
+	private Engine engine;
+	
+	public void addEnginePower(float increment){
+		if(this.enginePower<MAX_ENGINE_POWER) {
+			this.enginePower+=increment;
+		}
+	}
+	
+	public float getEnginePower(){
+		return this.enginePower;
+	}
+	
+	public void addTurboBoostPower(float increment){
+		if(turboBoostPower<MAX_TURBO_BOOST_POWER) {
+			this.turboBoostPower+=increment;
+		}
+	}
+	public float getTurboBoostPower(){
+		return this.turboBoostPower;
+	}
+
 	
 	public PlayerActor(float x, float y, Engine engine,  PhysicsWorld physicsWorld, Terrain terrain, LevelScene levelScene, TextureRegionLibrary textureRegionLibrary){
 		this.x = x;
@@ -125,12 +131,13 @@ public class PlayerActor implements IUpdateHandler{
 		LoopEntityModifier scannerEntityModifier = new LoopEntityModifier( new SequenceEntityModifier(new ScaleModifier(1, 0.3f, 1f),new ScaleModifier(1, 1f, 0.3f)));
 		scannerShape.registerEntityModifier(scannerEntityModifier);
 		
-		constructDustParticleSystem();
+		//constructDustParticleSystem();
 	
 	}
 	
 	public float getX() {
-		return this.heroShape.getX();
+		return this.heroBody.getPosition().x *  PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT;
+		//return this.heroShape.getX();
 	}
 	
 	public float getY() {
@@ -206,9 +213,13 @@ public class PlayerActor implements IUpdateHandler{
 	public void manageAcceleration() {
 		
 		if(isAccelerating && isInContact){
+			 if(enginePower>0){
+				enginePower-=ENGINE_POWER_DECREMENT;
+				//should be a torque?
+				heroBody.applyForce(new Vector2(20,0), heroBody.getPosition());
+			 }
+			 
 		
-			//should be a torque?
-			heroBody.applyForce(new Vector2(20,0), heroBody.getPosition());
 		}
 	}
 	
@@ -289,9 +300,12 @@ public class PlayerActor implements IUpdateHandler{
 	
 	private boolean isInContact(){
 		List<Contact> contacts = heroBody.getWorld().getContactList();
-		for( Contact c: contacts){
-			Body fixtureABody = c.getFixtureA().getBody();
-			Body fixtureBBody = c.getFixtureB().getBody();
+		Contact c;
+		int numContacts = contacts.size();
+		for(int i=0; i<numContacts;i++){
+				c = contacts.get(i);
+				Body fixtureABody = c.getFixtureA().getBody();
+				Body fixtureBBody = c.getFixtureB().getBody();
 			
 			if(fixtureABody == heroBody || fixtureBBody == heroBody){
 				return true;
@@ -309,10 +323,7 @@ public class PlayerActor implements IUpdateHandler{
 		
 		//Vector2 vel = heroBody.getLinearVelocity();
 	
-		Vector2 vel = terrain.getVectorAtX(heroShape.getX() + heroShape.getWidth()/2);
-		
-		
-		double newAngle =  Math.toDegrees(bearing(vel)) ;
+
 		double average = 0;
 	
 	    for(int i = 0; i < NUM_PREV_VELS; ++i) {
@@ -322,8 +333,13 @@ public class PlayerActor implements IUpdateHandler{
 	    average = average/NUM_PREV_VELS;
 	    
 	    if(isInContact) {
-	    	weightedAngle[_nextVel++] = newAngle;
-	    	if (_nextVel >= NUM_PREV_VELS) _nextVel = 0;
+	    	
+			Vector2 vel = terrain.getVectorAtX(heroShape.getX() + heroShape.getWidth()/2);
+			if(vel!=null) {
+				double newAngle =  Math.toDegrees(bearing(vel)) ;
+	    		weightedAngle[_nextVel++] = newAngle;
+	    		if (_nextVel >= NUM_PREV_VELS) _nextVel = 0;
+			}
 	    }
 		
 	    return average;
@@ -338,7 +354,8 @@ public class PlayerActor implements IUpdateHandler{
 	
 	private void manageTurboBoost(){
 		if(chargingTurboBoost==true) {
-			if(turboBoost.y>-MAX_VERTICAL_TURBO_BOOST){
+			if(turboBoost.y>-MAX_VERTICAL_TURBO_BOOST && turboBoostPower>0){
+				turboBoostPower-=TURBO_BOOST_POWER_DECREMENT;
 				turboBoost.add(new Vector2(5,-100));
 			}
 		}
@@ -381,7 +398,7 @@ public class PlayerActor implements IUpdateHandler{
 		
 		isInContact = isInContact();
 		
-		manageMinimumVelocity();
+		//manageMinimumVelocity();
 		manageAcceleration();
 		updateSuspension();
 		
@@ -392,11 +409,11 @@ public class PlayerActor implements IUpdateHandler{
 		
 		//if(frontWheelBody.getAngularVelocity()>1){
 		if(isInContact) {
-			particleSystem.setParticlesSpawnEnabled(true);
-			pointParticleEmitter.setCenter(heroShape.getX(), heroShape.getY()+20f);
+	//		particleSystem.setParticlesSpawnEnabled(true);
+	//		pointParticleEmitter.setCenter(heroShape.getX(), heroShape.getY()+20f);
 		}
 		else {
-			particleSystem.setParticlesSpawnEnabled(false);
+		//	particleSystem.setParticlesSpawnEnabled(false);
 		}
 		
 		

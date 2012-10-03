@@ -144,15 +144,18 @@ public class Terrain extends Entity {
 
 	public float getMaxTerrainHeightInRange(float x1, float x2){
 		
-		float maxY = 0;
+		float maxY = -100000;
 		Vector2 point; 
+		int numPoints =  borderPoints.size();
 		
-		for(int i=0; i<borderPoints.size();i++){
+		for(int i=0; i<numPoints;i++){
 			point = borderPoints.get(i);
 			if(point.x >= x1  && point.x <= x2){
 				if(borderPoints.get(i).y>maxY) {;
 					maxY = borderPoints.get(i).y;
 				}
+			} else if(point.x>x2) {
+				return maxY;
 			}
 		}
 		
@@ -283,7 +286,8 @@ public class Terrain extends Entity {
 		
 		 PolygonShape boxPoly = new PolygonShape();
 		 boxPoly.setAsEdge(new Vector2(point1.x / PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT, point1.y/PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT), new Vector2(point2.x/PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT,point2.y/PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT));
-		 FixtureDef fixtureDef = PhysicsFactory.createFixtureDef(1, 0.6f, 1);
+		 //FixtureDef fixtureDef = PhysicsFactory.createFixtureDef(1, 0.6f, 1);
+		 FixtureDef fixtureDef = PhysicsFactory.createFixtureDef(1, 0.3f, 1);
 		 fixtureDef.shape = boxPoly;
 		 return fixtureDef;
 	}
@@ -330,6 +334,7 @@ public class Terrain extends Entity {
 	
 	protected void onManagedUpdate(final float pSecondsElapsed) {
 		
+		
 		int minIndex = -1;
 		int minHillIndex = -1;
 		float minX = this.engine.getCamera().getXMin();
@@ -338,12 +343,12 @@ public class Terrain extends Entity {
 		//offset each item in the 
 		
 		//avoid iterator!!
-		for(Vector2 v: borderPoints){
+		
+		for(int j=0;j<borderPoints.size();j++) {
 
 			//remove any points we dont care about from the allPoints collection.
-			if(v.x<minX) {
-				minIndex = borderPoints.indexOf(v);
-				 
+			if(borderPoints.get(j).x<minX) {
+				minIndex = j;		 
 			} else {
 				break;
 			}

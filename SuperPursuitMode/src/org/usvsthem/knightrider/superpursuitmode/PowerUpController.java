@@ -5,10 +5,6 @@ import java.util.HashMap;
 
 import org.andengine.engine.handler.IUpdateHandler;
 import org.usvsthem.knightrider.superpursuitmode.entity.BasePowerUp;
-import org.usvsthem.knightrider.superpursuitmode.entity.IPowerUpListener;
-import org.usvsthem.knightrider.superpursuitmode.entity.PowerUpPool;
-
-import android.util.Log;
 
 public class PowerUpController implements IUpdateHandler{
 	
@@ -71,7 +67,7 @@ public class PowerUpController implements IUpdateHandler{
 				powersUpToRemove.add(powerUp);
 			}
 		}
-		Log.d("POWERUP", "REMOVED" + powersUpToRemove.size());
+		
 		for(int i=0;i<powersUpToRemove.size();i++){
 			powerUp = powersUpToRemove.get(i);
 			powerupsInScene.remove(powerUp);

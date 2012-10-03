@@ -4,6 +4,7 @@ import org.andengine.engine.Engine;
 import org.andengine.engine.FixedStepEngine;
 import org.andengine.engine.camera.Camera;
 import org.andengine.engine.camera.SmoothCamera;
+import org.andengine.engine.camera.ZoomCamera;
 import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
@@ -36,13 +37,19 @@ public class SuperPursuitModeActivity extends SimpleBaseGameActivity  {
 	
 	@Override
 	public EngineOptions onCreateEngineOptions() {
-		  Camera mCamera = new SmoothCamera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT,1000,1000,1000);
+		//  Camera mCamera = new SmoothCamera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT,1000,100,10);
+		  
+		  Camera mCamera = new ZoomCamera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
+		  
 		  return new EngineOptions(true, ScreenOrientation.LANDSCAPE_SENSOR,new RatioResolutionPolicy(CAMERA_WIDTH, CAMERA_HEIGHT), mCamera);
 	}
 	
 	@Override
 	public Engine onCreateEngine(final EngineOptions pEngineOptions) {
-		Engine engine = new FixedStepEngine(pEngineOptions,60);
+		//Engine engine = new FixedStepEngine(pEngineOptions,60);
+		
+		Engine engine = new Engine(pEngineOptions);
+		
 		engine.setTouchController(new MultiTouchController());
 		return engine;
 	}
@@ -82,9 +89,14 @@ public class SuperPursuitModeActivity extends SimpleBaseGameActivity  {
 		createTextureRegion(textureAtlas, "star_background.png", Textures.STAR_BACKGROUND);
 		createTextureRegion(textureAtlas, "jump.png", Textures.POWERUP_JUMP);
 		createTextureRegion(textureAtlas, "powerup_background_blue.png", Textures.POWERUP_BACKGROUND_BLUE);
-		
+		createTextureRegion(textureAtlas, "powerup_background_yellow.png", Textures.POWERUP_BACKGROUND_YELLOW);
+		createTextureRegion(textureAtlas, "power.png", Textures.POWERUP_POWER);
 		
 		createTextureRegion(textureAtlas, "sign.png",Textures.SIGN_1);
+		
+		createTextureRegion(textureAtlas, "power_green.png",Textures.POWERBAR_GREEN);
+		createTextureRegion(textureAtlas, "power_red.png",Textures.POWERBAR_RED);
+		createTextureRegion(textureAtlas, "power_yellow.png",Textures.POWERBAR_YELLOW);
 		
 		try {
 			textureAtlas.build(new BlackPawnTextureAtlasBuilder<IBitmapTextureAtlasSource, BitmapTextureAtlas>(0,1,1));
@@ -108,7 +120,7 @@ public class SuperPursuitModeActivity extends SimpleBaseGameActivity  {
 	@Override
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
-		//Debug.stopMethodTracing();
+	//	Debug.stopMethodTracing();
 		super.onDestroy();
 	}
 }

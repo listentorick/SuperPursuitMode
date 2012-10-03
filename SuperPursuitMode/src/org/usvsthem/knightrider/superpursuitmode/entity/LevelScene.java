@@ -4,6 +4,8 @@ import java.util.ArrayList;
 
 import org.andengine.engine.Engine;
 import org.andengine.engine.camera.SmoothCamera;
+import org.andengine.engine.camera.ZoomCamera;
+import org.andengine.engine.camera.hud.HUD;
 import org.andengine.engine.handler.IUpdateHandler;
 import org.andengine.engine.handler.timer.ITimerCallback;
 import org.andengine.engine.handler.timer.TimerHandler;
@@ -15,6 +17,7 @@ import org.andengine.extension.physics.box2d.FixedStepPhysicsWorld;
 import org.andengine.extension.physics.box2d.PhysicsWorld;
 import org.andengine.input.touch.TouchEvent;
 import org.andengine.opengl.texture.region.TextureRegionLibrary;
+import org.usvsthem.knightrider.superpursuitmode.CameraPositionManager;
 import org.usvsthem.knightrider.superpursuitmode.DesertFurnitureFactory;
 import org.usvsthem.knightrider.superpursuitmode.EnemyFactory;
 import org.usvsthem.knightrider.superpursuitmode.ILevel;
@@ -26,7 +29,6 @@ import org.usvsthem.knightrider.superpursuitmode.TerrainFollowingPowerupLayoutSt
 import org.usvsthem.knightrider.superpursuitmode.Textures;
 import org.usvsthem.knightrider.superpursuitmode.Theme;
 
-import android.hardware.SensorManager;
 import android.util.Log;
 
 import com.badlogic.gdx.math.Vector2;
@@ -36,18 +38,12 @@ public class LevelScene extends Scene implements ILevel {
 	public static int ACTOR_INDEX = 0;
 	
 	private Engine engine;
-	//private SurfaceScrollDetector scrollDetector;
 	private Terrain terrain;
 	private PhysicsWorld physicsWorld;
-	private static final Vector2 GRAVITY = new Vector2(0.0F, SensorManager.GRAVITY_EARTH);
 	private PlayerActor playerActor;
 	private TextureRegionLibrary textureRegionLibrary;
 	
-	private float minZoom = (1f/2f);
-	private float maxViewHeight;
-	private float HERO_X_OFFSET  = 100;
-	private float CAMERA_Y_PADDING  = 100;
-	private SmoothCamera camera;
+	private ZoomCamera camera;
 	
 	private SpriteMultiPool furniturePool;
 	private int NUM_FURNITURE = 10;
@@ -55,23 +51,19 @@ public class LevelScene extends Scene implements ILevel {
 	private ArrayList<Sprite> furnitureInScene;
 	private Theme theme;
 	private EnemyPool enemyPool; 
-	//private SpritePool starPool; 
-	//private PowerUpPool powerUpPool;
-	
-	private ArrayList<Sprite> starsInScene;
-	
+
 	private PowerUpController powerupController; 
+	
+	private PowerBar enginePowerBar;
+	private PowerBar turboBoostPowerBar;
 	
 	private float PLAYER_START_X  = 100;
 
 	public LevelScene(final Engine engine, TextureRegionLibrary textureRegionLibrary){
 	
 		this.engine = engine;
-		this.camera = (SmoothCamera) engine.getCamera();
-		this.maxViewHeight = engine.getCamera().getHeightRaw() / minZoom;
+		this.camera = (ZoomCamera) engine.getCamera();
 		this.textureRegionLibrary = textureRegionLibrary;
-		
-	
 		
 		theme = Theme.DESERT;
 		
@@ -83,11 +75,31 @@ public class LevelScene extends Scene implements ILevel {
 
 		configureFurniture();
 		//configureStars();
-		configureEnemies();
+		//configureEnemies();
 		configurePowerups();
 		configureCamera();
 		
+		enginePowerBar = new PowerBar(10, 10, 10, 10, 10, playerActor.MAX_ENGINE_POWER, this.getEngine().getVertexBufferObjectManager(), textureRegionLibrary);
+		turboBoostPowerBar = new PowerBar(400, 10, 10, 10, 10, playerActor.MAX_TURBO_BOOST_POWER, this.getEngine().getVertexBufferObjectManager(), textureRegionLibrary);
+		
+		HUD hud = new HUD();
+		hud.attachChild(enginePowerBar); 
+		hud.attachChild(turboBoostPowerBar);
+		 
+		camera.setHUD(hud);
 	
+	}
+	
+	public PowerBar getPowerBar(){
+		return enginePowerBar;
+	}
+	
+	public void addEnginePower(float power){
+		playerActor.addEnginePower(power);	
+	}
+	
+	public void addTurboBoostPower(float power){
+		playerActor.addTurboBoostPower(power);
 	}
 	
 	public Terrain getTerrain(){
@@ -113,11 +125,31 @@ public class LevelScene extends Scene implements ILevel {
 	public void createBackground() {
 		SpriteBackground bg = new SpriteBackground(new Sprite(0, 0,800,480, textureRegionLibrary.get(Textures.SKY),engine.getVertexBufferObjectManager()));
 		bg.setColor(1f,1f,1f);
+		
 		this.setBackground(bg);
 	}
 	
 	public void createPlayer(){
 		this.playerActor = createPlayer(PLAYER_START_X, terrain.getYAt(PLAYER_START_X) - 100);
+		
+		this.registerUpdateHandler(new IUpdateHandler() {
+			
+			@Override
+			public void reset() {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onUpdate(float pSecondsElapsed) {
+				// TODO Auto-generated method stub
+				enginePowerBar.setLevel(playerActor.getEnginePower());	
+				turboBoostPowerBar.setLevel(playerActor.getTurboBoostPower());	
+			}
+		});
+		
+		
+		
 		playerActor.wake();
 	}
 	
@@ -159,114 +191,9 @@ public class LevelScene extends Scene implements ILevel {
 	
 	}
 	
-	/*
-	private void configureStars(){
-		starPool = new SpritePool(new StarFactory(engine, textureRegionLibrary));
-		starsInScene = new ArrayList<Sprite>();
-		
-		this.registerUpdateHandler(new IUpdateHandler() {
-			
-			@Override
-			public void reset() {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void onUpdate(float pSecondsElapsed) {
-				
-				//are there any stars on the screen
-				Sprite star;
-				boolean remove = false;
-				
-				for(int i=0; i<starsInScene.size();i++) {
-					star = starsInScene.get(i);
-					
-					if(playerActor.getPrincipleShape().collidesWith(star)){
-						remove = true;
-					}
-					
-					if((star.getX() + star.getWidth())<camera.getXMin()){
-						remove = true;
-					}
-					
-					if(remove == true){
-						Log.d("STAR", "Removing star");
-						starsInScene.remove(star);
-						detachChild(star);
-						starPool.recyclePoolItem(star);
-					}
-					
-					remove = false;
-				}
-				
-			}
-		});
-		
-		this.registerUpdateHandler(new TimerHandler(5,true, new ITimerCallback() {
-			
-			@Override
-			public void onTimePassed(TimerHandler pTimerHandler) {
 
-				if(starsInScene.size()==0) {
-					
-					
-					
-					//starsFollowLine();
-					starsFollowLine(camera.getXMax(),Math.floor(Math.random() * 5),Math.floor(Math.random() * 10));
-				
-				}
-			}
-		}));
-		
-		
-	}*/
-	
-	/*
-	private void starsFollowLine(float startX, double d, double e){
-		Sprite actor;
-		float x = startX;
-		float y = 0;
-		
-		for(int i=0; i<d;i++){	
-			
-			for(int j=0;j<e;j++){
-				actor = starPool.obtainPoolItem();
-				starsInScene.add(actor);
-				y = terrain.getYAt(x) - ((StarFactory.STAR_HEIGHT) * (i + 1));
-				actor.setPosition(x,y);
-				attachChild(actor);
-				x = x + StarFactory.STAR_WIDTH + STAR_ROW_PADDING; 
-			} 
-			
-			x = startX;
-		}
-	}
 	
 	
-	private float STAR_ROW_PADDING = 10;
-	
-	private void straightRowsOfStars(float startX, int numRows, int numColumns){
-		
-		Sprite actor;
-		float x = startX;
-		float y = terrain.getMinTerrainHeightInRange(startX + (numColumns * (StarFactory.STAR_WIDTH + STAR_ROW_PADDING)), startX + camera.getWidth());
-		float minHeight = y - (numColumns * (StarFactory.STAR_HEIGHT + STAR_ROW_PADDING));
-		
-		for(int i=0; i<numRows;i++){	
-			
-			for(int j=0;j<numColumns;j++){
-				actor = starPool.obtainPoolItem();
-				starsInScene.add(actor);
-				actor.setPosition(x,y);
-				attachChild(actor);
-				x = x + StarFactory.STAR_WIDTH;
-			} 
-			x = startX;
-			y = y + StarFactory.STAR_HEIGHT +STAR_ROW_PADDING;
-		}
-	}
-	*/
 	private float minFurnitureX = 0;
 	
 	private void configureFurniture() { 
@@ -419,8 +346,11 @@ public class LevelScene extends Scene implements ILevel {
 	}
 	
 	public void createPhysicsWorld(){
-		this.physicsWorld = new FixedStepPhysicsWorld(60,new Vector2(0,9.8f), true);
+		//this.physicsWorld = new FixedStepPhysicsWorld(30,new Vector2(0,9.8f), true);
 
+		this.physicsWorld = new PhysicsWorld(new Vector2(0,9.8f), true);
+
+		
 		this.registerUpdateHandler(new IUpdateHandler() {
 			
 			@Override
@@ -440,71 +370,8 @@ public class LevelScene extends Scene implements ILevel {
 	
 	public void configureCamera(){
 		
-		this.registerUpdateHandler(new IUpdateHandler() {
-			
-			@Override
-			public void reset() {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			private int NUM_PREV_MAXY  = 15;//35;
-			double[] weightedMaxY = new double[NUM_PREV_MAXY];
-			
-			int _nextMaxY = 0;
-			
-			
-			@Override
-			public void onUpdate(float pSecondsElapsed) {
-
-				float maxY =  terrain.getMaxTerrainHeightInRange(camera.getXMin(), camera.getXMax());
-				float minY = playerActor.getY();
-				
-				minY-=CAMERA_Y_PADDING; //add some loverly padding
-				maxY+=CAMERA_Y_PADDING;
-				
-				//Due to the discrete nature of our terrain generation
-				//we use a weighted maxY when positioning/zooming the camera.
-				//this avoids jerky camera motion
-				float averageMaxY = 0;
-				for(int i = 0; i < NUM_PREV_MAXY; ++i) { 
-					averageMaxY+=weightedMaxY[i];
-				}
-				
-				averageMaxY = averageMaxY/NUM_PREV_MAXY;
-				      
-				weightedMaxY[_nextMaxY++] = maxY;
-				
-				if (_nextMaxY >= NUM_PREV_MAXY) _nextMaxY = 0;
-				
-				//lets calculate the zoom we need - based upon terrain and player
-				float zoom = camera.getHeightRaw()/(averageMaxY-minY);
-							
-				float cameraY = 0;
-				
-				if(zoom>1f){
-					zoom = 1f;
-				} 
-				
-				if(Float.compare(zoom,minZoom)<0){
-					zoom = minZoom;
-					
-					//if we're at the max zoom anchor to the player
-					cameraY = minY + (maxViewHeight/2.0f);
-				} else {
-					//anchor to the lowest hill.
-					cameraY = averageMaxY - (camera.getHeight()/2.0f);
-				}
-				
-				float cameraX = playerActor.getX()+(camera.getWidth()/2 - (HERO_X_OFFSET / zoom));
-				
-				camera.setCenter(cameraX , cameraY);
-				camera.setZoomFactor(zoom);
-			}
-			
-			
-		});
-	
+		CameraPositionManager cpm = new CameraPositionManager(engine,camera,terrain,playerActor);
+		this.registerUpdateHandler(cpm);
 	}
 	
 	public PlayerActor createPlayer(float x, float y){

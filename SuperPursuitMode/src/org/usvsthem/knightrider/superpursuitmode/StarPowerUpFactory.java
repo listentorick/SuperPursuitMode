@@ -27,6 +27,7 @@ public class StarPowerUpFactory implements IPowerUpFactory{
 			public boolean shouldExecutePowerup(BasePowerUp basePowerUp) {
 				// TODO Auto-generated method stub
 				return basePowerUp.collidesWith(level.getPlayerActor().getPrincipleShape());
+				//return false;
 			}
 			
 			@Override
