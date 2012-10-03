@@ -76,7 +76,7 @@ public class LevelScene extends Scene implements ILevel {
 		configureFurniture();
 		//configureStars();
 		//configureEnemies();
-		configurePowerups();
+	//	configurePowerups();
 		configureCamera();
 		
 		enginePowerBar = new PowerBar(10, 10, 10, 10, 10, playerActor.MAX_ENGINE_POWER, this.getEngine().getVertexBufferObjectManager(), textureRegionLibrary);
@@ -122,11 +122,35 @@ public class LevelScene extends Scene implements ILevel {
 		return this.playerActor;
 	}
 	
+	
+	private ParallaxBackground2d background;
+	
 	public void createBackground() {
-		SpriteBackground bg = new SpriteBackground(new Sprite(0, 0,800,480, textureRegionLibrary.get(Textures.SKY),engine.getVertexBufferObjectManager()));
-		bg.setColor(1f,1f,1f);
 		
-		this.setBackground(bg);
+		background = new ParallaxBackground2d(1f,1f,1f);
+		
+		Sprite backgroundSprite =  new Sprite(0,0, 800, 480,textureRegionLibrary.get(Textures.SKY),engine.getVertexBufferObjectManager());
+		background.attachParallaxEntity(new ParallaxBackground2d.ParallaxBackground2dEntity(0,0,backgroundSprite,false,false,false));
+		
+		Sprite mountainsSprite =  new Sprite(0,244, 800, 236,textureRegionLibrary.get(Textures.MOUNTAINS),engine.getVertexBufferObjectManager());
+		background.attachParallaxEntity(new ParallaxBackground2d.ParallaxBackground2dEntity(-0.2f,-0.05f,mountainsSprite,true,false,false));
+	
+		
+		this.setBackground(background);
+		this.registerUpdateHandler(new IUpdateHandler() {
+			
+			@Override
+			public void reset() {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onUpdate(float pSecondsElapsed) {
+				// TODO Auto-generated method stub
+				background.setParallaxValue(camera.getCenterX(), camera.getCenterY());
+			}
+		});
 	}
 	
 	public void createPlayer(){

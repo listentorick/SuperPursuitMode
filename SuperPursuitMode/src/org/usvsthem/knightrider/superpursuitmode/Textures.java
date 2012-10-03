@@ -11,7 +11,9 @@ public class Textures {
 	 public static final int CACTUS_2 = 6;
 	 
 	 public static final int SKY = 7;
+	 public static final int MOUNTAINS = 23;
 
+	 
 	 public static final int KARR_CHASIS = 8;
 	 public static final int KARR_SCANNER = 9;
 	 public static final int CACTUS_3 = 10;
