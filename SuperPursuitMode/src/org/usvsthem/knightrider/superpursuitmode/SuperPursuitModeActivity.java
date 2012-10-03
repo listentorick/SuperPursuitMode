@@ -67,7 +67,7 @@ public class SuperPursuitModeActivity extends SimpleBaseGameActivity  {
 		TextureManager textureManager = this.mEngine.getTextureManager();
 		
 		BitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");       
-		BuildableBitmapTextureAtlas textureAtlas = new BuildableBitmapTextureAtlas(textureManager, 1024, 512, TextureOptions.BILINEAR_PREMULTIPLYALPHA);
+		BuildableBitmapTextureAtlas textureAtlas = new BuildableBitmapTextureAtlas(textureManager, 2048, 1024, TextureOptions.BILINEAR_PREMULTIPLYALPHA);
 		
 		createTextureRegion(textureAtlas, "kitt_chasis.png",Textures.PlayerChasis);
 		createTextureRegion(textureAtlas, "rear_wheel.png",Textures.PlayerRearWheel);
@@ -81,6 +81,7 @@ public class SuperPursuitModeActivity extends SimpleBaseGameActivity  {
 		
 		
 		createTextureRegion(textureAtlas, "background.png",Textures.SKY);
+		createTextureRegion(textureAtlas, "mountains.png",Textures.MOUNTAINS);
 		
 		createTextureRegion(textureAtlas, "karr_chasis.png",Textures.KARR_CHASIS);
 		createTextureRegion(textureAtlas, "karr_scanner.png",Textures.KARR_SCANNER);
