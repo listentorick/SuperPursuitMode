@@ -5,23 +5,24 @@ import java.util.ArrayList;
 import org.andengine.engine.camera.Camera;
 import org.andengine.entity.sprite.Sprite;
 import org.usvsthem.knightrider.superpursuitmode.ILevel;
-import org.usvsthem.knightrider.superpursuitmode.Theme;
-import org.usvsthem.knightrider.superpursuitmode.entity.SpriteMultiPool;
+
+
+//this should only be responsible for asking for furniture and removing the furniture
+//the positioning is handled by the provider?
 
 public class FurnitureController implements IFurnitureController{
 	
 	private ArrayList<Sprite> furnitureInScene;
 	private ILevel level;
-	private SpriteMultiPool furniturePool;
+	private IFurnitureProvider furnitureProvider;
 	private Camera camera;
-	private float minFurnitureX = 0;
-	private Theme theme = Theme.DESERT;
+		
 	
-	
-	public FurnitureController(ILevel level, SpriteMultiPool furniturePool) {
+	public FurnitureController(ILevel level, IFurnitureProvider furnitureProvider) {
 		this.level = level;
 		this.camera = level.getEngine().getCamera();
 		furnitureInScene = new ArrayList<Sprite>();
+		this.furnitureProvider = furnitureProvider;
 	}
 		
 	private void manageFurniture(){
@@ -33,39 +34,21 @@ public class FurnitureController implements IFurnitureController{
 			}
 		}
 		
-		for(int i=0; i<furniturePool.getAvailableItemCount(theme.ordinal());i++){
-			//grabs a random item from the pool and adds it to the scene.
-			this.addFurnitureFromPoolToScene(theme);
+		Sprite[] sprites = furnitureProvider.obtainFurniture(camera.getXMin(), camera.getXMax());
+		if(sprites!=null){
+			for(int i=0; i< sprites.length;i++){
+				furniture = sprites[i];
+				level.addFurniture(furniture);
+				furnitureInScene.add(furniture);
+			}
 		}
-	}
-
-	private void addFurnitureFromPoolToScene(Theme theme) {
-		Sprite furniture = furniturePool.obtainPoolItem(theme.ordinal());
-		level.addFurniture(furniture);
-		positionTerrainFuniture(furniture);
-		furnitureInScene.add(furniture);
 	}
 	
 	private void removeFurnitureFromSceneToPool(Sprite furniture) {
 		furnitureInScene.remove(furniture);
-		furniturePool.recyclePoolItem(furniture);
+		furnitureProvider.furnitureRemoved(furniture);
 		level.removeFurniture(furniture);
 	}
-	
-	private void positionTerrainFuniture(Sprite furniture){
-		if(minFurnitureX < camera.getXMax()) {
-			minFurnitureX = camera.getXMax();
-		}
-		minFurnitureX+= furniture.getWidth() + ((float)Math.random()*200);
-		
-		float xPos = minFurnitureX;
-		
-		float yPos = level.getTerrain().getYAt(xPos);
-		float yPos2 = level.getTerrain().getYAt(xPos+ furniture.getWidth());
-		if(yPos2> yPos) yPos = yPos2; 
-		furniture.setPosition(xPos, yPos - furniture.getHeight());
-	}
-
 
 	@Override
 	public void onUpdate(float pSecondsElapsed) {

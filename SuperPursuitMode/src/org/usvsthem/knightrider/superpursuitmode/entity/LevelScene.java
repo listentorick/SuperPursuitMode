@@ -24,6 +24,7 @@ import org.usvsthem.knightrider.superpursuitmode.Textures;
 import org.usvsthem.knightrider.superpursuitmode.Theme;
 import org.usvsthem.knightrider.superpursuitmode.enemies.EnemyFactory;
 import org.usvsthem.knightrider.superpursuitmode.enemies.EnemyPool;
+import org.usvsthem.knightrider.superpursuitmode.furniture.DefaultFurnitureProvider;
 import org.usvsthem.knightrider.superpursuitmode.furniture.DesertFurnitureFactory;
 import org.usvsthem.knightrider.superpursuitmode.furniture.FurnitureController;
 import org.usvsthem.knightrider.superpursuitmode.powerUps.BasePowerUp;
@@ -216,7 +217,8 @@ public class LevelScene extends Scene implements ILevel {
 
 	private void configureFurniture() { 
 		SpriteMultiPool furniturePool = this.themeProvider.createFurniturePool();
-		furnitureController = new FurnitureController(this,furniturePool);
+		DefaultFurnitureProvider dfp = new DefaultFurnitureProvider(this, furniturePool);
+		furnitureController = new FurnitureController(this,dfp);
 		this.registerUpdateHandler(furnitureController);
 	}
 
@@ -351,14 +353,14 @@ public class LevelScene extends Scene implements ILevel {
 	@Override
 	public void removeFurniture(Sprite furniture) {
 		// TODO Auto-generated method stub
-		this.attachChild(furniture);
+		this.detachChild(furniture);
 		
 	}
 
 	@Override
 	public void addFurniture(Sprite furniture) {
 		// TODO Auto-generated method stub
-		this.detachChild(furniture);
+		this.attachChild(furniture);
 	}
 	
 	
