@@ -1,7 +1,6 @@
-package org.usvsthem.knightrider.superpursuitmode.entity;
+package org.usvsthem.knightrider.superpursuitmode.powerUps;
 
 import org.andengine.util.adt.pool.GenericPool;
-import org.usvsthem.knightrider.superpursuitmode.IPowerUpFactory;
 
 public class PowerUpPool extends GenericPool<BasePowerUp> {
 

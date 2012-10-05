@@ -21,6 +21,7 @@ import org.andengine.extension.physics.box2d.util.constants.PhysicsConstants;
 import org.andengine.opengl.texture.region.TextureRegionLibrary;
 import org.usvsthem.knightrider.superpursuitmode.Constants;
 import org.usvsthem.knightrider.superpursuitmode.Textures;
+import org.usvsthem.knightrider.superpursuitmode.terrain.ITerrain;
 
 import android.util.Log;
 
@@ -78,7 +79,7 @@ public class PlayerActor implements IUpdateHandler{
 	private boolean dischargeTurboBoost = false;
 	private static float MAX_VERTICAL_TURBO_BOOST = 3000f;
 	private boolean awake;
-	private Terrain terrain;
+	private ITerrain terrain;
 	private float enginePower = MAX_ENGINE_POWER;
 	private float turboBoostPower = MAX_TURBO_BOOST_POWER;
 	private Engine engine;
@@ -103,7 +104,7 @@ public class PlayerActor implements IUpdateHandler{
 	}
 
 	
-	public PlayerActor(float x, float y, Engine engine,  PhysicsWorld physicsWorld, Terrain terrain, LevelScene levelScene, TextureRegionLibrary textureRegionLibrary){
+	public PlayerActor(float x, float y, Engine engine,  PhysicsWorld physicsWorld, ITerrain terrain, LevelScene levelScene, TextureRegionLibrary textureRegionLibrary){
 		this.x = x;
 		this.y = y;
 		this.engine = engine;

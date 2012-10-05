@@ -1,7 +1,8 @@
-package org.usvsthem.knightrider.superpursuitmode.entity;
+package org.usvsthem.knightrider.superpursuitmode.terrain;
 
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import org.andengine.engine.Engine;
@@ -11,6 +12,7 @@ import org.andengine.entity.primitive.Mesh;
 import org.andengine.extension.physics.box2d.PhysicsFactory;
 import org.andengine.extension.physics.box2d.PhysicsWorld;
 import org.andengine.extension.physics.box2d.util.constants.PhysicsConstants;
+import org.usvsthem.knightrider.superpursuitmode.entity.Path;
 
 import android.util.Log;
 
@@ -23,7 +25,7 @@ import com.badlogic.gdx.physics.box2d.PolygonShape;
 
 import com.badlogic.gdx.math.Vector2;
 
-public class Terrain extends Entity {
+public class Terrain extends Entity implements ITerrain {
 
 	private Engine engine;
 	private int numPoints = 240;
@@ -262,10 +264,8 @@ public class Terrain extends Entity {
 	protected Vector2 generateNextTerrainPoint(Vector2 previousVector, float sign){
 		float x = previousVector.x + r.nextFloat()%rangeDX+minDX;
 		float y = previousVector.y + ( r.nextFloat()%rangeDY+minDY)*sign;
+		//float y = 0;
 		return new Vector2(x,y);
-	}
-	
-	public void setOffset(float x, float y){
 	}
 	
 	private Body createTerrainBody(){
@@ -373,6 +373,15 @@ public class Terrain extends Entity {
 
 		if(minIndex!=-1) {
 			borderPoints.subList(0, minIndex).clear();
+			List<Fixture> fixturesToRemove = new ArrayList<Fixture>();
+			//List<Fixture> fixturesToRemove = terrainBody.getFixtureList().subList(0,  (minIndex));
+			for(int j =0 ; j <minIndex;j++){
+				fixturesToRemove.add(terrainBody.getFixtureList().get(j));
+			}
+			
+			for(int s =0; s<fixturesToRemove.size();s++){
+				terrainBody.destroyFixture(fixturesToRemove.get(s));
+			}
 			
 			if(minHillIndex!=-1) {
 				hillVertices.subList(0, minHillIndex+1).clear();
@@ -382,6 +391,8 @@ public class Terrain extends Entity {
 			generateTerrain();
 			
 			if(minHillIndex!=-1) {
+				
+				
 				
 				populateBuffer(hillVertices, hillVerticesBuffer, numHillVertices);
 			

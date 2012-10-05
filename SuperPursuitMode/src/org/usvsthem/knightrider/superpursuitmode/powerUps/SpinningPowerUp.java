@@ -1,19 +1,21 @@
-package org.usvsthem.knightrider.superpursuitmode.entity;
+package org.usvsthem.knightrider.superpursuitmode.powerUps;
 
 import org.andengine.entity.modifier.LoopEntityModifier;
+import org.andengine.entity.modifier.RotationModifier;
 import org.andengine.entity.modifier.ScaleModifier;
 import org.andengine.entity.modifier.SequenceEntityModifier;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
+import org.usvsthem.knightrider.superpursuitmode.Textures;
 
-public class ThrobbingPowerUp extends BasePowerUp {
+public class SpinningPowerUp extends BasePowerUp {
 
 	private Sprite background;
 	private Sprite middle;
 	private Sprite foreground; 
 	
-	public ThrobbingPowerUp(float pX, float pY, ITextureRegion backgroundTextureRegion,
+	public SpinningPowerUp(float pX, float pY, ITextureRegion backgroundTextureRegion,
 			ITextureRegion midgroundTextureRegion,
 			ITextureRegion foregroundTextureRegion,
 			VertexBufferObjectManager vertexBufferObjectManager,
@@ -42,14 +44,14 @@ public class ThrobbingPowerUp extends BasePowerUp {
 		middle = new Sprite(middleX, middleY,midgroundTextureRegion.getWidth(),midgroundTextureRegion.getHeight(), midgroundTextureRegion, this.getVertexBufferObjectManager());
 		this.attachChild(middle);
 		
-		LoopEntityModifier scaleLoop = new LoopEntityModifier(  new SequenceEntityModifier( new ScaleModifier(1,0.75f,1f),new ScaleModifier(1,1f,0.75f)));
-		middle.registerEntityModifier(scaleLoop);
+		LoopEntityModifier loop = new LoopEntityModifier( new RotationModifier(1,0,360));
+		middle.registerEntityModifier(loop);
 		
 		foreground = new Sprite(foregroundX, foregroundY, foregroundTextureRegion.getWidth(),foregroundTextureRegion.getHeight(), foregroundTextureRegion, this.getVertexBufferObjectManager());
 		this.attachChild(foreground);
 		
-	}
-		
+
+	}	
 }
 
 

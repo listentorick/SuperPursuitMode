@@ -1,4 +1,4 @@
-package org.usvsthem.knightrider.superpursuitmode.entity;
+package org.usvsthem.knightrider.superpursuitmode.ui;
 
 import java.util.ArrayList;
 

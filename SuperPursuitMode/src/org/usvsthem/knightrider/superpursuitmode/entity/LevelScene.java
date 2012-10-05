@@ -18,16 +18,24 @@ import org.andengine.extension.physics.box2d.PhysicsWorld;
 import org.andengine.input.touch.TouchEvent;
 import org.andengine.opengl.texture.region.TextureRegionLibrary;
 import org.usvsthem.knightrider.superpursuitmode.CameraPositionManager;
-import org.usvsthem.knightrider.superpursuitmode.DesertFurnitureFactory;
-import org.usvsthem.knightrider.superpursuitmode.EnemyFactory;
 import org.usvsthem.knightrider.superpursuitmode.ILevel;
-import org.usvsthem.knightrider.superpursuitmode.PowerUpController;
-import org.usvsthem.knightrider.superpursuitmode.PowerUpFactory;
-import org.usvsthem.knightrider.superpursuitmode.RandomPositionPowerUpLayoutStrategy;
-import org.usvsthem.knightrider.superpursuitmode.StarPowerUpFactory;
-import org.usvsthem.knightrider.superpursuitmode.TerrainFollowingPowerupLayoutStrategy;
+import org.usvsthem.knightrider.superpursuitmode.SimpleThemeProvider;
 import org.usvsthem.knightrider.superpursuitmode.Textures;
 import org.usvsthem.knightrider.superpursuitmode.Theme;
+import org.usvsthem.knightrider.superpursuitmode.enemies.EnemyFactory;
+import org.usvsthem.knightrider.superpursuitmode.enemies.EnemyPool;
+import org.usvsthem.knightrider.superpursuitmode.furniture.DesertFurnitureFactory;
+import org.usvsthem.knightrider.superpursuitmode.furniture.FurnitureController;
+import org.usvsthem.knightrider.superpursuitmode.powerUps.BasePowerUp;
+import org.usvsthem.knightrider.superpursuitmode.powerUps.PowerUpController;
+import org.usvsthem.knightrider.superpursuitmode.powerUps.PowerUpFactory;
+import org.usvsthem.knightrider.superpursuitmode.powerUps.PowerUpPool;
+import org.usvsthem.knightrider.superpursuitmode.powerUps.RandomPositionPowerUpLayoutStrategy;
+import org.usvsthem.knightrider.superpursuitmode.powerUps.StarPowerUpFactory;
+import org.usvsthem.knightrider.superpursuitmode.powerUps.TerrainFollowingPowerupLayoutStrategy;
+import org.usvsthem.knightrider.superpursuitmode.terrain.ITerrain;
+import org.usvsthem.knightrider.superpursuitmode.terrain.Terrain;
+import org.usvsthem.knightrider.superpursuitmode.ui.PowerBar;
 
 import android.util.Log;
 
@@ -38,34 +46,31 @@ public class LevelScene extends Scene implements ILevel {
 	public static int ACTOR_INDEX = 0;
 	
 	private Engine engine;
-	private Terrain terrain;
+	private ITerrain terrain;
 	private PhysicsWorld physicsWorld;
 	private PlayerActor playerActor;
 	private TextureRegionLibrary textureRegionLibrary;
 	
 	private ZoomCamera camera;
-	
-	private SpriteMultiPool furniturePool;
-	private int NUM_FURNITURE = 10;
-	
-	private ArrayList<Sprite> furnitureInScene;
-	private Theme theme;
+		
 	private EnemyPool enemyPool; 
 
 	private PowerUpController powerupController; 
+	private FurnitureController furnitureController;
 	
 	private PowerBar enginePowerBar;
 	private PowerBar turboBoostPowerBar;
 	
 	private float PLAYER_START_X  = 100;
+	private IThemeProvider themeProvider;
 
 	public LevelScene(final Engine engine, TextureRegionLibrary textureRegionLibrary){
 	
 		this.engine = engine;
 		this.camera = (ZoomCamera) engine.getCamera();
 		this.textureRegionLibrary = textureRegionLibrary;
-		
-		theme = Theme.DESERT;
+
+		themeProvider = new SimpleThemeProvider(engine, textureRegionLibrary);
 		
 		createBackground();
 		createPhysicsWorld();
@@ -76,7 +81,7 @@ public class LevelScene extends Scene implements ILevel {
 		configureFurniture();
 		//configureStars();
 		//configureEnemies();
-	//	configurePowerups();
+		configurePowerups();
 		configureCamera();
 		
 		enginePowerBar = new PowerBar(10, 10, 10, 10, 10, playerActor.MAX_ENGINE_POWER, this.getEngine().getVertexBufferObjectManager(), textureRegionLibrary);
@@ -102,7 +107,7 @@ public class LevelScene extends Scene implements ILevel {
 		playerActor.addTurboBoostPower(power);
 	}
 	
-	public Terrain getTerrain(){
+	public ITerrain getTerrain(){
 		return this.terrain;
 	}
 	
@@ -127,22 +132,13 @@ public class LevelScene extends Scene implements ILevel {
 	
 	public void createBackground() {
 		
-		background = new ParallaxBackground2d(1f,1f,1f);
-		
-		Sprite backgroundSprite =  new Sprite(0,0, 800, 480,textureRegionLibrary.get(Textures.SKY),engine.getVertexBufferObjectManager());
-		background.attachParallaxEntity(new ParallaxBackground2d.ParallaxBackground2dEntity(0,0,backgroundSprite,false,false,false));
-		
-		Sprite mountainsSprite =  new Sprite(0,244, 800, 236,textureRegionLibrary.get(Textures.MOUNTAINS),engine.getVertexBufferObjectManager());
-		background.attachParallaxEntity(new ParallaxBackground2d.ParallaxBackground2dEntity(-0.2f,-0.05f,mountainsSprite,true,false,false));
-	
+		background = this.themeProvider.createBackground();
 		
 		this.setBackground(background);
 		this.registerUpdateHandler(new IUpdateHandler() {
 			
 			@Override
 			public void reset() {
-				// TODO Auto-generated method stub
-				
 			}
 			
 			@Override
@@ -161,7 +157,6 @@ public class LevelScene extends Scene implements ILevel {
 			@Override
 			public void reset() {
 				// TODO Auto-generated method stub
-				
 			}
 			
 			@Override
@@ -178,6 +173,9 @@ public class LevelScene extends Scene implements ILevel {
 	}
 	
 	public void createTerrain(){
+		
+		
+		//here we could load a xml doc with the terrain details in it here...
 		
 		terrain = new Terrain(engine, this.physicsWorld);
 		this.attachChild(terrain);
@@ -216,53 +214,18 @@ public class LevelScene extends Scene implements ILevel {
 	}
 	
 
-	
-	
-	private float minFurnitureX = 0;
-	
 	private void configureFurniture() { 
-		furniturePool = new SpriteMultiPool();
-		furnitureInScene = new ArrayList<Sprite>();
-		SpritePool desertFurniturePool =  new SpritePool(new DesertFurnitureFactory(engine, textureRegionLibrary));
-		desertFurniturePool.batchAllocatePoolItems(NUM_FURNITURE);
-		furniturePool.registerPool(Theme.DESERT.ordinal(),desertFurniturePool);
-
-		
-		this.registerUpdateHandler(new IUpdateHandler() {
-			
-			@Override
-			public void reset() {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void onUpdate(float pSecondsElapsed) {
-				
-				manageFurniture();
-			}
-		});
+		SpriteMultiPool furniturePool = this.themeProvider.createFurniturePool();
+		furnitureController = new FurnitureController(this,furniturePool);
+		this.registerUpdateHandler(furnitureController);
 	}
 
-	private void manageFurniture(){
-		Sprite furniture;
-		for(int i=0; i<furnitureInScene.size();i++) {
-			furniture = furnitureInScene.get(i);
-			if((furniture.getX() + furniture.getWidth())<camera.getXMin()){
-				this.removeFurnitureFromSceneToPool(furniture);
-			}
-		}
-		
-		for(int i=0; i<furniturePool.getAvailableItemCount(theme.ordinal());i++){
-			//grabs a random item from the pool and adds it to the scene.
-			this.addFurnitureFromPoolToScene(theme);
-		}
-	}
-	
 	private ArrayList<TerrainAlignedActor> enemies = new ArrayList<TerrainAlignedActor>();
 	
 	
 	public void configurePowerups(){
+		
+		//here we might load a different controller that reads xml
 		
 		powerupController = new PowerUpController(this);
 		PowerUpPool powerUpPool = new PowerUpPool(new PowerUpFactory(this)); 
@@ -276,13 +239,9 @@ public class LevelScene extends Scene implements ILevel {
 		
 		this.registerUpdateHandler(powerupController);
 		
-		//bum since some power ups should never be arranged in a particular way, the layout strategy and the poools need to be linked..
-		//perhaps IPowerUpLayoutStrategy should have create, layout, destroy methods? create 
-	
 	}
 	
 	private void configureEnemies(){
-		
 		
 		enemyPool = new EnemyPool(new EnemyFactory(engine,this, physicsWorld,terrain,textureRegionLibrary));
 		enemyPool.batchAllocatePoolItems(1);
@@ -335,40 +294,6 @@ public class LevelScene extends Scene implements ILevel {
 		
 	}
 
-	/*
-	 * Adds (positions) a furniture item from the pool to the scene
-	 * 
-	 * 
-	 */
-	
-	
-	private void addFurnitureFromPoolToScene(Theme theme) {
-		Sprite furniture = furniturePool.obtainPoolItem(theme.ordinal());
-		this.attachChild(furniture);
-		positionTerrainFuniture(furniture);
-		furnitureInScene.add(furniture);
-	}
-	
-	private void removeFurnitureFromSceneToPool(Sprite furniture) {
-		furnitureInScene.remove(furniture);
-		furniturePool.recyclePoolItem(furniture);
-		this.detachChild(furniture);
-	}
-	
-	private void positionTerrainFuniture(Sprite furniture){
-		if(minFurnitureX < camera.getXMax()) {
-			minFurnitureX = camera.getXMax();
-		}
-		minFurnitureX+= furniture.getWidth() + ((float)Math.random()*200);
-		
-		float xPos = minFurnitureX;
-		
-		float yPos = terrain.getYAt(xPos);
-		float yPos2 = terrain.getYAt(xPos+ furniture.getWidth());
-		if(yPos2> yPos) yPos = yPos2; 
-		furniture.setPosition(xPos, yPos - furniture.getHeight());
-	}
-	
 	public void createPhysicsWorld(){
 		//this.physicsWorld = new FixedStepPhysicsWorld(30,new Vector2(0,9.8f), true);
 
@@ -422,5 +347,20 @@ public class LevelScene extends Scene implements ILevel {
 		// TODO Auto-generated method stub
 		this.detachChild(powerup);
 	}
+
+	@Override
+	public void removeFurniture(Sprite furniture) {
+		// TODO Auto-generated method stub
+		this.attachChild(furniture);
+		
+	}
+
+	@Override
+	public void addFurniture(Sprite furniture) {
+		// TODO Auto-generated method stub
+		this.detachChild(furniture);
+	}
+	
+	
 	
 }

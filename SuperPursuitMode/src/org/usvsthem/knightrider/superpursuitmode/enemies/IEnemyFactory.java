@@ -1,4 +1,4 @@
-package org.usvsthem.knightrider.superpursuitmode;
+package org.usvsthem.knightrider.superpursuitmode.enemies;
 
 import org.andengine.entity.sprite.Sprite;
 import org.usvsthem.knightrider.superpursuitmode.entity.TerrainAlignedActor;

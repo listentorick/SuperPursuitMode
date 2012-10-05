@@ -6,6 +6,7 @@ import org.andengine.entity.sprite.Sprite;
 import org.andengine.extension.physics.box2d.PhysicsWorld;
 import org.andengine.opengl.texture.region.TextureRegionLibrary;
 import org.usvsthem.knightrider.superpursuitmode.Textures;
+import org.usvsthem.knightrider.superpursuitmode.terrain.ITerrain;
 
 public class Karr extends TerrainAlignedActor{
 
@@ -23,7 +24,7 @@ public class Karr extends TerrainAlignedActor{
 	private static float SCANNER_RADIUS = 12;
 	
 	public Karr(float x, float y, Direction direction, Engine engine, PhysicsWorld physicsWorld,
-			Terrain terrain, LevelScene leveScene,
+			ITerrain terrain, LevelScene leveScene,
 			TextureRegionLibrary textureRegionLibrary) {
 		super(x, y, direction, engine, physicsWorld, terrain, leveScene, textureRegionLibrary);
 		// TODO Auto-generated constructor stub

@@ -8,7 +8,8 @@ import org.andengine.engine.handler.IUpdateHandler;
 import org.andengine.engine.handler.timer.ITimerCallback;
 import org.andengine.engine.handler.timer.TimerHandler;
 import org.usvsthem.knightrider.superpursuitmode.entity.PlayerActor;
-import org.usvsthem.knightrider.superpursuitmode.entity.Terrain;
+import org.usvsthem.knightrider.superpursuitmode.terrain.ITerrain;
+import org.usvsthem.knightrider.superpursuitmode.terrain.Terrain;
 
 public class CameraPositionManager implements IUpdateHandler{
 	
@@ -17,13 +18,13 @@ public class CameraPositionManager implements IUpdateHandler{
 	int _nextMaxY = 0;
 	private float averageMaxY = 0;
 	private ZoomCamera camera;
-	private Terrain terrain;
+	private ITerrain terrain;
 	private PlayerActor playerActor;
 	private float minZoom = (1f/2f);
 	private float maxViewHeight;
 	private float HERO_X_OFFSET  = 100f;
 	private float HERO_PADDING  = 100f;
-	public CameraPositionManager( Engine engine,  ZoomCamera camera,  Terrain terrain, PlayerActor playerActor){
+	public CameraPositionManager( Engine engine,  ZoomCamera camera,  ITerrain terrain, PlayerActor playerActor){
 		
 		this.camera = camera;
 		this.terrain = terrain;

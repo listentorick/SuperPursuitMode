@@ -7,8 +7,8 @@ import org.andengine.entity.sprite.Sprite;
 import org.andengine.opengl.texture.region.TextureRegionLibrary;
 import org.andengine.util.adt.pool.GenericPool;
 import org.andengine.util.adt.pool.MultiPool;
-import org.usvsthem.knightrider.superpursuitmode.DesertFurnitureFactory;
 import org.usvsthem.knightrider.superpursuitmode.Theme;
+import org.usvsthem.knightrider.superpursuitmode.furniture.DesertFurnitureFactory;
 
 public class SpriteMultiPool {
 	

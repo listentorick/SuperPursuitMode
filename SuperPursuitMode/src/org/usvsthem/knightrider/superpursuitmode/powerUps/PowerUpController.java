@@ -1,10 +1,10 @@
-package org.usvsthem.knightrider.superpursuitmode;
+package org.usvsthem.knightrider.superpursuitmode.powerUps;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.andengine.engine.handler.IUpdateHandler;
-import org.usvsthem.knightrider.superpursuitmode.entity.BasePowerUp;
+import org.usvsthem.knightrider.superpursuitmode.ILevel;
 
 public class PowerUpController implements IUpdateHandler{
 	

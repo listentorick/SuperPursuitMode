@@ -1,4 +1,5 @@
-package org.usvsthem.knightrider.superpursuitmode.entity;
+package org.usvsthem.knightrider.superpursuitmode.powerUps;
+
 
 
 

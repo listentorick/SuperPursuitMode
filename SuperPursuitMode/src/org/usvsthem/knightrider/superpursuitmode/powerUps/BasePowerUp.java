@@ -1,4 +1,4 @@
-package org.usvsthem.knightrider.superpursuitmode.entity;
+package org.usvsthem.knightrider.superpursuitmode.powerUps;
 
 import org.andengine.entity.primitive.Rectangle;
 import org.andengine.opengl.texture.region.ITextureRegion;

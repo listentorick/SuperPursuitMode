@@ -1,7 +1,7 @@
-package org.usvsthem.knightrider.superpursuitmode.entity;
+package org.usvsthem.knightrider.superpursuitmode.enemies;
 
 import org.andengine.util.adt.pool.GenericPool;
-import org.usvsthem.knightrider.superpursuitmode.IEnemyFactory;
+import org.usvsthem.knightrider.superpursuitmode.entity.TerrainAlignedActor;
 
 public class EnemyPool extends GenericPool<TerrainAlignedActor> {
 

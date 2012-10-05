@@ -1,9 +1,8 @@
-package org.usvsthem.knightrider.superpursuitmode;
+package org.usvsthem.knightrider.superpursuitmode.powerUps;
 
 import org.andengine.opengl.texture.region.ITextureRegion;
-import org.usvsthem.knightrider.superpursuitmode.entity.BasePowerUp;
-import org.usvsthem.knightrider.superpursuitmode.entity.IPowerUpExecutor;
-import org.usvsthem.knightrider.superpursuitmode.entity.ThrobbingPowerUp;
+import org.usvsthem.knightrider.superpursuitmode.ILevel;
+import org.usvsthem.knightrider.superpursuitmode.Textures;
 
 public class PowerUpFactory implements IPowerUpFactory{
 

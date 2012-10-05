@@ -15,6 +15,7 @@ import org.andengine.extension.physics.box2d.util.constants.PhysicsConstants;
 import org.andengine.opengl.texture.region.TextureRegionLibrary;
 import org.usvsthem.knightrider.superpursuitmode.Constants;
 import org.usvsthem.knightrider.superpursuitmode.Textures;
+import org.usvsthem.knightrider.superpursuitmode.terrain.ITerrain;
 
 import android.R.bool;
 
@@ -37,7 +38,7 @@ public abstract class TerrainAlignedActor implements IUpdateHandler{
 	private static float FRICTION = 0.0f;
 	
 	
-	protected Terrain terrain;
+	protected ITerrain terrain;
 	protected IAreaShape shape;
 	protected Body body;
 	protected PhysicsWorld physicsWorld;
@@ -51,7 +52,7 @@ public abstract class TerrainAlignedActor implements IUpdateHandler{
 //	private PointParticleEmitter dustParticleEmitter;
 //	private ParticleSystem dustParticleSystem;
 
-	public TerrainAlignedActor(float x, float y,Direction direction, Engine engine, PhysicsWorld physicsWorld, Terrain terrain,  LevelScene levelScene, TextureRegionLibrary textureRegionLibrary){
+	public TerrainAlignedActor(float x, float y,Direction direction, Engine engine, PhysicsWorld physicsWorld, ITerrain terrain,  LevelScene levelScene, TextureRegionLibrary textureRegionLibrary){
 		this.terrain = terrain;
 		this.textureRegionLibrary = textureRegionLibrary;
 		this.physicsWorld = physicsWorld;

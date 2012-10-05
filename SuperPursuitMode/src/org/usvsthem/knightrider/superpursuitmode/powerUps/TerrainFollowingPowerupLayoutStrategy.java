@@ -1,11 +1,10 @@
-package org.usvsthem.knightrider.superpursuitmode;
+package org.usvsthem.knightrider.superpursuitmode.powerUps;
 
 import java.util.ArrayList;
 
 import org.andengine.entity.shape.IAreaShape;
 import org.andengine.entity.sprite.Sprite;
-import org.usvsthem.knightrider.superpursuitmode.entity.BasePowerUp;
-import org.usvsthem.knightrider.superpursuitmode.entity.PowerUpPool;
+import org.usvsthem.knightrider.superpursuitmode.ILevel;
 
 import android.util.Log;
 
