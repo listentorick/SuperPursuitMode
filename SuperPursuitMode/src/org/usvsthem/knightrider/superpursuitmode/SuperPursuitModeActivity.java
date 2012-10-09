@@ -23,6 +23,7 @@ import org.andengine.opengl.texture.region.TextureRegion;
 import org.andengine.opengl.texture.region.TextureRegionLibrary;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
 import org.usvsthem.knightrider.superpursuitmode.entity.LevelScene;
+import org.usvsthem.knightrider.superpursuitmode.loader.LevelLoader;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -114,8 +115,18 @@ public class SuperPursuitModeActivity extends SimpleBaseGameActivity  {
 	protected Scene onCreateScene() {
 		//Debug.startMethodTracing();
 		//this.getEngine().registerUpdateHandler(new FPSLogger());
-		LevelScene level = new LevelScene(this.getEngine(), textureRegionLibrary);
-		return level;
+		LevelLoader levelLoader = new LevelLoader(this,this.getEngine(), this.textureRegionLibrary);
+		LevelScene levelScene = null;
+		
+		try {
+			levelScene = (LevelScene) levelLoader.loadLevel(1);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return levelScene;
+		
 	}
 	
 	@Override

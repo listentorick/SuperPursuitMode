@@ -24,9 +24,11 @@ import org.usvsthem.knightrider.superpursuitmode.Textures;
 import org.usvsthem.knightrider.superpursuitmode.Theme;
 import org.usvsthem.knightrider.superpursuitmode.enemies.EnemyFactory;
 import org.usvsthem.knightrider.superpursuitmode.enemies.EnemyPool;
-import org.usvsthem.knightrider.superpursuitmode.furniture.DefaultFurnitureProvider;
+import org.usvsthem.knightrider.superpursuitmode.furniture.IFurnitureProvider;
+import org.usvsthem.knightrider.superpursuitmode.furniture.RandomlyPositionedFurnitureProvider;
 import org.usvsthem.knightrider.superpursuitmode.furniture.DesertFurnitureFactory;
 import org.usvsthem.knightrider.superpursuitmode.furniture.FurnitureController;
+import org.usvsthem.knightrider.superpursuitmode.loader.configuration.LevelConfiguration;
 import org.usvsthem.knightrider.superpursuitmode.powerUps.BasePowerUp;
 import org.usvsthem.knightrider.superpursuitmode.powerUps.PowerUpController;
 import org.usvsthem.knightrider.superpursuitmode.powerUps.PowerUpFactory;
@@ -64,13 +66,18 @@ public class LevelScene extends Scene implements ILevel {
 	
 	private float PLAYER_START_X  = 100;
 	private IThemeProvider themeProvider;
+	private IFurnitureProvider furnitureProvider;
 
 	public LevelScene(final Engine engine, TextureRegionLibrary textureRegionLibrary){
 	
 		this.engine = engine;
 		this.camera = (ZoomCamera) engine.getCamera();
 		this.textureRegionLibrary = textureRegionLibrary;
-
+		
+	}
+	
+	public void build(){
+		
 		themeProvider = new SimpleThemeProvider(engine, textureRegionLibrary);
 		
 		createBackground();
@@ -93,7 +100,11 @@ public class LevelScene extends Scene implements ILevel {
 		hud.attachChild(turboBoostPowerBar);
 		 
 		camera.setHUD(hud);
+		
+	}
 	
+	public void setFurnitureProvider(IFurnitureProvider furnitureProvider){
+		this.furnitureProvider = furnitureProvider;
 	}
 	
 	public PowerBar getPowerBar(){
@@ -216,9 +227,7 @@ public class LevelScene extends Scene implements ILevel {
 	
 
 	private void configureFurniture() { 
-		SpriteMultiPool furniturePool = this.themeProvider.createFurniturePool();
-		DefaultFurnitureProvider dfp = new DefaultFurnitureProvider(this, furniturePool);
-		furnitureController = new FurnitureController(this,dfp);
+		furnitureController = new FurnitureController(this,this.furnitureProvider);
 		this.registerUpdateHandler(furnitureController);
 	}
 

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<level>
+	
+	<spritePool>
+		<sprite id="0" src="cactus.png"/>
+		<sprite id="1" src="cactus2.png"/>
+		<sprite id="2" src="cactus3.png"/>
+	</spritePool>
+	
+	<furnitureProvider class="org.usvsthem.knightrider.superpursuitmode.loader.configuration.RandomlyPositionedFurnitureProviderConfiguration">
+		<furniturePool>
+		    <furniture spriteId="0"/>
+		    <furniture spriteId="1"/>
+		    <furniture spriteId="2"/>
+		</furniturePool>
+	</furnitureProvider>
+	
+</level>

@@ -4,16 +4,22 @@ import org.andengine.engine.camera.Camera;
 import org.andengine.entity.sprite.Sprite;
 import org.usvsthem.knightrider.superpursuitmode.ILevel;
 import org.usvsthem.knightrider.superpursuitmode.entity.SpriteMultiPool;
+import org.usvsthem.knightrider.superpursuitmode.entity.SpritePool;
 
-public class DefaultFurnitureProvider implements IFurnitureProvider {
+
+/*
+ * Provides Furniture from and positions randomly
+ */
+public class RandomlyPositionedFurnitureProvider implements IFurnitureProvider {
 	
-	SpriteMultiPool spriteMultiPool;
+	SpritePool spritePool;
 	private ILevel level;
 	private float minFurnitureX = 0;
 	private Camera camera;
 	
-	public DefaultFurnitureProvider(ILevel level, SpriteMultiPool spriteMultiPool){
-		this.spriteMultiPool = spriteMultiPool;
+	public RandomlyPositionedFurnitureProvider(ILevel level, SpritePool spritePool){
+		this.spritePool = spritePool;
+		spritePool.batchAllocatePoolItems(10);
 		this.level=level;
 		this.camera = level.getEngine().getCamera();
 	}
@@ -21,11 +27,11 @@ public class DefaultFurnitureProvider implements IFurnitureProvider {
 	@Override
 	public Sprite[] obtainFurniture(float minX, float maxX) {
 		Sprite[] sprites = null;
-		int numItems = spriteMultiPool.getAvailableItemCount(0);
+		int numItems = spritePool.getAvailableItemCount();
 		if(numItems>0){
 			sprites = new Sprite[numItems];
 			for(int i=0;i<numItems;i++) {
-				sprites[i] = spriteMultiPool.obtainPoolItem(0);
+				sprites[i] = spritePool.obtainPoolItem();
 				positionTerrainFuniture(sprites[i]);
 			}
 		}
@@ -51,7 +57,7 @@ public class DefaultFurnitureProvider implements IFurnitureProvider {
 
 	@Override
 	public void furnitureRemoved(Sprite sprite) {
-		spriteMultiPool.recyclePoolItem(sprite);
+		spritePool.recyclePoolItem(sprite);
 	}
 
 }
