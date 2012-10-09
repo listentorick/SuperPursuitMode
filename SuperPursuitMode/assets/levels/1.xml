@@ -9,9 +9,9 @@
 	
 	<furnitureProvider class="org.usvsthem.knightrider.superpursuitmode.loader.configuration.RandomlyPositionedFurnitureProviderConfiguration">
 		<furniturePool>
-		    <furniture spriteId="0"/>
-		    <furniture spriteId="1"/>
-		    <furniture spriteId="2"/>
+		    <furniture spriteId="0" width="20" height="51"/>
+		    <furniture spriteId="1" width="16" height="50"/>
+		    <furniture spriteId="2" width="30" height="50"/>
 		</furniturePool>
 	</furnitureProvider>
 	

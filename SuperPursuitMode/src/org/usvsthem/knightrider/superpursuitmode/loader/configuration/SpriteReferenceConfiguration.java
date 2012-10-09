@@ -11,7 +11,19 @@ public class SpriteReferenceConfiguration {
 	   return this.spriteId;
 	}
 	
-	public void setSpriteId(int spriteId) {
-		this.spriteId = spriteId;
+	@Attribute(name="width")
+	private float width;
+   
+	public float getWidth() {
+	   return this.width;
 	}
+	
+	@Attribute(name="height")
+	private float height;
+   
+	public float getHeight() {
+	   return this.height;
+	}
+	
+
 }

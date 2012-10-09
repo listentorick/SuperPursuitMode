@@ -35,7 +35,7 @@ public class SpritePoolLoader {
 		
 	}
 	
-	private void addSpriteReference(SpriteReferenceConfiguration src){
+	private void addSpriteReference(final SpriteReferenceConfiguration src){
 		
 		final TextureRegion textureRegion = textureRegionLibrary.get(src.getSpriteId());
 		
@@ -44,7 +44,7 @@ public class SpritePoolLoader {
 				@Override
 				public Sprite create() {
 					// TODO Auto-generated method stub
-					return new Sprite(0,0,textureRegion.getWidth(),textureRegion.getHeight(), textureRegion , engine.getVertexBufferObjectManager());	
+					return new Sprite(0,0,src.getWidth(),src.getHeight(), textureRegion , engine.getVertexBufferObjectManager());	
 					
 				}
 			});
