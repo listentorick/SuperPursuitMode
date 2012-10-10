@@ -35,28 +35,21 @@ public class Terrain extends Entity implements ITerrain {
 	private ArrayList<Vector2> hillVertices; //these are used to draw the line
     private ArrayList<Vector2> hillTextCoords;
     
-	private float hillSegmentWidth = 10;
-	//protected float[] bufferData; //in this we store the vertices and the color data
 	private Random r;
-	private  int rangeDX = 80;
-    private int rangeDY = 40;
-    private float minDX = 400;
-    private float minDY = 100;
-	private Path borderPath;
 	private PhysicsWorld physicsWorld;
-	//private PhysicsFactory physicsFactory;
 	private Body terrainBody;
 	private Mesh hills;
-	//private float[] borderPointsBuffer;
 	private float[] hillVerticesBuffer;
+	private ITerrainPolygonProvider terrainPolygonProvider;
 	
-	public Terrain(Engine engine, PhysicsWorld physicsWorld){
+	public Terrain(Engine engine, PhysicsWorld physicsWorld, ITerrainPolygonProvider terrainPolygonProvider){
 	
 		r = new Random();
 		this.engine = engine;
 		this.engine.getCamera();
 		this.physicsWorld = physicsWorld;
-		//physicsFactory = new PhysicsFactory();
+		this.terrainPolygonProvider = terrainPolygonProvider;
+		
 		this.terrainBody = createTerrainBody();
 		
 		this.keyPoints = new ArrayList<Vector2>();
@@ -64,31 +57,21 @@ public class Terrain extends Entity implements ITerrain {
 		this.hillTextCoords = new ArrayList<Vector2>();
 		this.hillVertices = new ArrayList<Vector2>();
 		
-		//borderPointsBuffer = new float[numPoints * 3];
 		hillVerticesBuffer = new float[numHillVertices * 3];
 		
 		this.generateTerrain();
-		
-		//float[] borderBufferData = populateBuffer(borderPoints,borderPointsBuffer,numPoints);
-		
-		//this.borderPath = new Path(0, 0, borderBufferData,engine.getVertexBufferObjectManager());
-		//this.borderPath.setColor(158f/255f,140f/255f,106f/255f);
-		//this.borderPath.setColor(0f,0f,0f);
-		
+	
 		float[] hillsBufferData = populateBuffer(hillVertices,hillVerticesBuffer,numHillVertices);
 		
 		this.hills = new Mesh(0f,0f, hillsBufferData, numHillVertices, DrawMode.TRIANGLE_STRIP,engine.getVertexBufferObjectManager());
 		this.hills.setColor(0.0f,0.0f,0.0f);
-		//this.hills.setColor(158f/255f,140f/255f,106f/255f);
-		
+	
 		this.attachChild(hills);
-		
-		//this.attachChild(borderPath);
 		
 	}
 		
 	public float getMinTerrainHeightInRange(float x1, float x2){
-		//float minY = keyPoints.get(0).y;
+
 		float minY  = 1000000;
 		Vector2 point; 
 		
@@ -181,92 +164,43 @@ public class Terrain extends Entity implements ITerrain {
 		return bufferData;
 	}
 
-	private float sign =1;
-	
-	private float nextSign(){
-	
-		int index =  (int)(Math.random() * 2);
-		if(index ==0) {
-			return -1;
-		}else {
-			return 1;
-		}
-	}
-	
-	
-	
 	private void generateTerrain(){
 		
 		Vector2 lastPoint;
 		
-		if(keyPoints.size()==0){
+		if(borderPoints.size()==0){
 			lastPoint = new Vector2(0,200);
-			keyPoints.add(lastPoint);
 			borderPoints.add(lastPoint);
 		
 		} else {
-			lastPoint = keyPoints.get(keyPoints.size()-1);
+			lastPoint = borderPoints.get(borderPoints.size()-1);
 		}
 		
-		//grab the last KEY point
-		//Vector2 
-		Vector2 nextPoint;
-		while(borderPoints.size()<(numPoints+1)) {
+		int numRequiredPoints = (numPoints+100) - borderPoints.size();
+		
+		if(numRequiredPoints>0){
 			
+			ArrayList<Vector2> newBorderPoints = new ArrayList<Vector2>();
+			ArrayList<Vector2> newHillVertices = new ArrayList<Vector2>();
+			ArrayList<Vector2> newHillTextCoords = new ArrayList<Vector2>();
 			
-			//we need the next KEY point
-			nextPoint = generateNextTerrainPoint(lastPoint,sign);
+			this.terrainPolygonProvider.populateWithNPoints(lastPoint, numRequiredPoints, newBorderPoints, newHillVertices, newHillTextCoords);
+			
+			borderPoints.addAll(newBorderPoints);
+			hillVertices.addAll(newHillVertices);
+			hillTextCoords.addAll(newHillTextCoords);
+			
+			newBorderPoints.add(0,lastPoint); //we need the last point also
+			int numNewBorderPoints = newBorderPoints.size(); 
+			for(int i=0; i<numNewBorderPoints-1;i++) {
+				 createFixtureAndAddBody(newBorderPoints.get(i),newBorderPoints.get(i+1));
+			}
+		
+		}
 
-			createTriangulatedSegment(lastPoint,nextPoint,borderPoints, hillVertices, hillTextCoords);
-			
-			
-			sign = nextSign();
-			
-			keyPoints.add(nextPoint);
-			//borderPoints.add(nextPoint);
-			
-			lastPoint = nextPoint;
-		}
 	}
 	
-	protected float calculateRadius(Vector2 lastPoint, Vector2 nextPoint){
-		return (lastPoint.y - nextPoint.y) / 2;
-	}
 	
-	protected float calculateYOffset(Vector2 lastPoint, Vector2 nextPoint){
-		return (lastPoint.y + nextPoint.y) / 2;
-	}
-		
-	protected ArrayList<Vector2> generateSegments(Vector2 lastPoint, Vector2 nextPoint){
-		ArrayList<Vector2> segments = new ArrayList<Vector2>(); 
-		int hSegments = (int) Math.floor((nextPoint.x-lastPoint.x)/hillSegmentWidth);
-		float dx = (nextPoint.x -lastPoint.x) / hSegments;
-		float da = (float) (Math.PI / hSegments); //split
-		float ymid = calculateYOffset(lastPoint, nextPoint);
-		float r = calculateRadius(lastPoint, nextPoint);
-		
-		//float r = calculateRadius(lastPoint, nextPoint);
-		Vector2 newPoint;
-		Vector2 previousPoint = lastPoint;
-		for (int j = 0; j < hSegments+1; ++j) {
-			newPoint = new Vector2();
-			newPoint.x = lastPoint.x + j*dx;
-			newPoint.y = (float) (ymid + r * Math.cos(da*j));  //cosf(da*j);
-			segments.add(newPoint);
-			
-			createFixtureAndAddBody(previousPoint,newPoint);
-			previousPoint = newPoint;
-		}
-		
-		return segments; 
-	}
-	
-	protected Vector2 generateNextTerrainPoint(Vector2 previousVector, float sign){
-		float x = previousVector.x + r.nextFloat()%rangeDX+minDX;
-		float y = previousVector.y + ( r.nextFloat()%rangeDY+minDY)*sign;
-		//float y = 0;
-		return new Vector2(x,y);
-	}
 	
 	private Body createTerrainBody(){
 		BodyDef bodyDef = new BodyDef();
@@ -292,45 +226,6 @@ public class Terrain extends Entity implements ITerrain {
 		 return fixtureDef;
 	}
 	
-	private void createTriangulatedSegment(Vector2 p0, Vector2 p1, ArrayList<Vector2> borderVertices,  ArrayList<Vector2> hillVertices,  ArrayList<Vector2> hillTexCoords){
-		
-		 float minY=engine.getCamera().getYMax() + 1000;
-		 Vector2 pt0, pt1;
-
-        // triangle strip between p0 and p1
-        int hSegments = (int) Math.floor(((p1.x-p0.x)/hillSegmentWidth));
-        float dx = (p1.x - p0.x) / hSegments;
-        float da = (float) (Math.PI / hSegments);
-        float ymid = (p0.y + p1.y) / 2;
-        float ampl = (p0.y - p1.y) / 2;
-        pt0 = p0;
-       // borderVertices.add(pt0);
-        for (int j=1; j<hSegments+1; j++) {
-        	pt1 = new Vector2();
-            pt1.x = p0.x + j*dx;
-            pt1.y = (float) (ymid + ampl * Math.cos(da*j));
-            borderVertices.add(pt1);
- 
-            createFixtureAndAddBody(pt0,pt1);
-            
-            hillVertices.add(new Vector2(pt0.x,minY)); 
-           // hillTexCoords.add(new Vector2(pt0.x/512, 1.0f));
-            hillVertices.add(new Vector2(pt1.x,minY));
-            //hillTexCoords.add(new Vector2(pt1.x/512, 1.0f));
-           
-            
-            hillVertices.add(new Vector2(pt0.x,pt0.y)); 
-            //hillTexCoords.add(new Vector2(pt0.x/512, 0f));
-            hillVertices.add(new Vector2(pt1.x,pt1.y)); 
-            //hillTexCoords.add(new Vector2(pt1.x/512, 0f));
-            
-            pt0 = pt1;
-        }
-		 
-
-		 
-		   
-	}
 	
 	protected void onManagedUpdate(final float pSecondsElapsed) {
 		
@@ -392,8 +287,6 @@ public class Terrain extends Entity implements ITerrain {
 			
 			if(minHillIndex!=-1) {
 				
-				
-				
 				populateBuffer(hillVertices, hillVerticesBuffer, numHillVertices);
 			
 				float[] hillBufferData = hills.getVertexBufferObject().getBufferData();
@@ -402,10 +295,6 @@ public class Terrain extends Entity implements ITerrain {
 				
 			}
 		 
-			//populateBuffer(borderPoints, borderPointsBuffer, numPoints);
-				
-			//borderPath.setBufferData(borderPointsBuffer);
-
 		}
 	
 		super.onManagedUpdate(pSecondsElapsed);		 		   

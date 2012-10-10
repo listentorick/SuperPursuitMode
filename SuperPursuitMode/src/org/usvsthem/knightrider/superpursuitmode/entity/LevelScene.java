@@ -37,6 +37,7 @@ import org.usvsthem.knightrider.superpursuitmode.powerUps.RandomPositionPowerUpL
 import org.usvsthem.knightrider.superpursuitmode.powerUps.StarPowerUpFactory;
 import org.usvsthem.knightrider.superpursuitmode.powerUps.TerrainFollowingPowerupLayoutStrategy;
 import org.usvsthem.knightrider.superpursuitmode.terrain.ITerrain;
+import org.usvsthem.knightrider.superpursuitmode.terrain.InfiniteRandomPolygonProvider;
 import org.usvsthem.knightrider.superpursuitmode.terrain.Terrain;
 import org.usvsthem.knightrider.superpursuitmode.ui.PowerBar;
 
@@ -189,7 +190,7 @@ public class LevelScene extends Scene implements ILevel {
 		
 		//here we could load a xml doc with the terrain details in it here...
 		
-		terrain = new Terrain(engine, this.physicsWorld);
+		terrain = new Terrain(engine, this.physicsWorld, new InfiniteRandomPolygonProvider());
 		this.attachChild(terrain);
 		this.registerUpdateHandler(terrain);
 		
