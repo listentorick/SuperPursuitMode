@@ -23,4 +23,13 @@ public class LevelConfiguration {
 		return furnitureProviderConfiguration;
 	}
 	
+	@Element(name="terrainPolygonProvider")
+	private BaseTerrainPolygonProviderConfiguration terrainPolygonProviderConfiguration;
+	
+	public BaseTerrainPolygonProviderConfiguration getTerrainPolygonProviderConfiguration(){
+		return terrainPolygonProviderConfiguration;
+	}
+	
+	
+	
 }

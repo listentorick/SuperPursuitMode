@@ -37,7 +37,9 @@ import org.usvsthem.knightrider.superpursuitmode.powerUps.RandomPositionPowerUpL
 import org.usvsthem.knightrider.superpursuitmode.powerUps.StarPowerUpFactory;
 import org.usvsthem.knightrider.superpursuitmode.powerUps.TerrainFollowingPowerupLayoutStrategy;
 import org.usvsthem.knightrider.superpursuitmode.terrain.ITerrain;
+import org.usvsthem.knightrider.superpursuitmode.terrain.ITerrainPolygonProvider;
 import org.usvsthem.knightrider.superpursuitmode.terrain.InfiniteRandomPolygonProvider;
+import org.usvsthem.knightrider.superpursuitmode.terrain.LayedOutTerrainPolygonProvider;
 import org.usvsthem.knightrider.superpursuitmode.terrain.Terrain;
 import org.usvsthem.knightrider.superpursuitmode.ui.PowerBar;
 
@@ -68,6 +70,7 @@ public class LevelScene extends Scene implements ILevel {
 	private float PLAYER_START_X  = 100;
 	private IThemeProvider themeProvider;
 	private IFurnitureProvider furnitureProvider;
+	private ITerrainPolygonProvider terrainPolygonProvider;
 
 	public LevelScene(final Engine engine, TextureRegionLibrary textureRegionLibrary){
 	
@@ -88,7 +91,7 @@ public class LevelScene extends Scene implements ILevel {
 		createPlayer();
 
 		configureFurniture();
-		//configureStars();
+		
 		//configureEnemies();
 		configurePowerups();
 		configureCamera();
@@ -102,6 +105,10 @@ public class LevelScene extends Scene implements ILevel {
 		 
 		camera.setHUD(hud);
 		
+	}
+	
+	public void setTerrainPolygonProvider(ITerrainPolygonProvider terrainPolygonProvider){
+		this.terrainPolygonProvider = terrainPolygonProvider;
 	}
 	
 	public void setFurnitureProvider(IFurnitureProvider furnitureProvider){
@@ -187,10 +194,7 @@ public class LevelScene extends Scene implements ILevel {
 	
 	public void createTerrain(){
 		
-		
-		//here we could load a xml doc with the terrain details in it here...
-		
-		terrain = new Terrain(engine, this.physicsWorld, new InfiniteRandomPolygonProvider());
+		terrain = new Terrain(engine, this.physicsWorld, this.terrainPolygonProvider);
 		this.attachChild(terrain);
 		this.registerUpdateHandler(terrain);
 		

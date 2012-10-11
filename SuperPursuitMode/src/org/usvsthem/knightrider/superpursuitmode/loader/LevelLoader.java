@@ -50,7 +50,9 @@ public class LevelLoader {
 		DynamicSpriteRegionLibraryLoader dsrl = new DynamicSpriteRegionLibraryLoader(engine.getTextureManager(), context.getAssets(),levelConfiguration);
 		
 		LevelScene levelScene = new LevelScene(engine, textureRegionLibrary);
-			
+		
+		TerrainPolygonProviderLoader terrainPolygonProviderLoader = new TerrainPolygonProviderLoader(levelConfiguration);
+		levelScene.setTerrainPolygonProvider(terrainPolygonProviderLoader.getTerrainPolygonProvider());
 		//Lets create 
 		FurnitureProviderLoader  fpl = new FurnitureProviderLoader(levelScene, engine, dsrl.getTextureRegionLibrary(), levelConfiguration);
 	

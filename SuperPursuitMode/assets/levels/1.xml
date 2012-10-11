@@ -15,4 +15,18 @@
 		</furniturePool>
 	</furnitureProvider>
 	
+	
+	<terrainPolygonProvider class="org.usvsthem.knightrider.superpursuitmode.loader.configuration.LayedOutTerrainPolygonProviderConfiguration">
+	    <terrainPoints>
+	        <terrainPoint x="400" y="100"/>
+	        <terrainPoint x="800" y="300"/>
+	        <terrainPoint x="1600" y="0"/>
+	        <terrainPoint x="2400" y="200"/>
+	        <terrainPoint x="4800" y="800"/>
+	        <terrainPoint x="8000" y="1000"/>
+	        <terrainPoint x="12000" y="0"/>
+	        <terrainPoint x="14000" y="1000"/>
+	    </terrainPoints>
+	</terrainPolygonProvider>
+		
 </level>
